@@ -95,7 +95,7 @@ export function SelectProfessionalScreen({ navigation, route }: Props) {
         <TouchableOpacity onPress={handleContinue} activeOpacity={0.85}>
           <LinearGradient
             colors={['#7c3aed', '#a855f7']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            start={[0, 0]} end={[1, 0]}
             style={styles.footerBtn}
           >
             <Text style={styles.footerBtnText}>Elegir fecha y horario →</Text>

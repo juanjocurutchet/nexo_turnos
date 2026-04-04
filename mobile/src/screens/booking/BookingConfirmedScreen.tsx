@@ -126,7 +126,7 @@ export function BookingConfirmedScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={handleWhatsApp} activeOpacity={0.85}>
             <LinearGradient
               colors={['#25d366', '#128c7e']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              start={[0, 0]} end={[1, 0]}
               style={styles.btnWa}
             >
               <Text style={styles.btnWaText}>📲 Compartir por WhatsApp</Text>

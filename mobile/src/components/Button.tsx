@@ -34,8 +34,8 @@ export function Button({ label, onPress, loading, disabled, variant = 'primary',
     >
       <LinearGradient
         colors={disabled ? ['#4b5563', '#4b5563'] : ['#7c3aed', '#a855f7']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        start={[0, 0]}
+        end={[1, 0]}
         style={styles.primary}
       >
         {loading ? (

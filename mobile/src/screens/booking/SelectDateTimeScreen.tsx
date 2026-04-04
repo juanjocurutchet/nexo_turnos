@@ -209,7 +209,7 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
         >
           <LinearGradient
             colors={selectedDate && selectedTime ? ['#7c3aed', '#a855f7'] : ['#4b5563', '#4b5563']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            start={[0, 0]} end={[1, 0]}
             style={styles.footerBtn}
           >
             <Text style={styles.footerBtnText}>Confirmar turno →</Text>

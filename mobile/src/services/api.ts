@@ -2,8 +2,9 @@ import axios from 'axios';
 
 // En desarrollo apunta al backend local
 // En producción cambiar por la URL del servidor
-const BASE_URL = 'http://10.0.2.2:3001/api'; // Android emulator → localhost
-// const BASE_URL = 'http://localhost:3001/api'; // iOS simulator / Expo web
+const BASE_URL = 'http://192.168.1.98:3001/api'; // IP local de la PC — Expo Go en dispositivo físico
+// const BASE_URL = 'http://10.0.2.2:3001/api'; // Android emulator
+// const BASE_URL = 'http://localhost:3001/api';  // iOS simulator / web
 
 export const api = axios.create({
   baseURL: BASE_URL,

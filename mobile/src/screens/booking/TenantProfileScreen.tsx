@@ -66,7 +66,8 @@ export function TenantProfileScreen({ navigation, route }: Props) {
         {/* Header */}
         <LinearGradient
           colors={['#1e0533', '#4a0e8f', '#7c3aed']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          start={[0, 0]}
+          end={[1, 1]}
           style={styles.header}
         >
           <View style={styles.avatar}>
@@ -134,7 +135,8 @@ export function TenantProfileScreen({ navigation, route }: Props) {
         >
           <LinearGradient
             colors={selected ? ['#7c3aed', '#a855f7'] : ['#4b5563', '#4b5563']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            start={[0, 0]}
+            end={[1, 0]}
             style={styles.footerBtn}
           >
             <Text style={styles.footerBtnText}>Elegir fecha y horario →</Text>
