@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// TENANT (negocio/local)
+// ─────────────────────────────────────────
+model Tenant {
+  id          String   @id @default(cuid())
+  slug        String   @unique // p.ej. "studio-lumiere" → nexoturnos.com/studio-lumiere
+  name        String
+  description String?
+  phone       String?
+  email       String?
+  address     String?
+  city        String?
+  logoUrl     String?
+  coverUrl    String?
+  timezone    String   @default("America/Argentina/Buenos_Aires")
+  currency    String   @default("ARS")
+  isActive    Boolean  @default(true)
+  plan        Plan     @default(FREE)
+  settings    Json     @default("{}")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         TenantUser[]
+  services      Service[]
+  professionals Professional[]
+  bookings      Booking[]
+  clients       Client[]
+  availability  WeeklyAvailability[]
+  holidays      Holiday[]
+
+  @@map("tenants")
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+// ─────────────────────────────────────────
+// USUARIOS DEL NEGOCIO (dueños / admins)
+// ─────────────────────────────────────────
+model TenantUser {
+  id         String   @id @default(cuid())
+  tenantId   String
+  clerkId    String   @unique
+  email      String
+  firstName  String
+  lastName   String
+  role       UserRole @default(STAFF)
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_users")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+// ─────────────────────────────────────────
+// PROFESIONALES (quienes atienden)
+// ─────────────────────────────────────────
+model Professional {
+  id           String  @id @default(cuid())
+  tenantId     String
+  firstName    String
+  lastName     String
+  bio          String?
+  avatarUrl    String?
+  color        String  @default("#7c3aed")
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  services     ProfessionalService[]
+  bookings     Booking[]
+  availability ProfessionalAvailability[]
+  timeOff      TimeOff[]
+
+  @@map("professionals")
+}
+
+// ─────────────────────────────────────────
+// CATEGORÍAS DE SERVICIOS
+// ─────────────────────────────────────────
+model ServiceCategory {
+  id       String    @id @default(cuid())
+  name     String
+  emoji    String?
+  order    Int       @default(0)
+  services Service[]
+
+  @@map("service_categories")
+}
+
+// ─────────────────────────────────────────
+// SERVICIOS
+// ─────────────────────────────────────────
+model Service {
+  id            String   @id @default(cuid())
+  tenantId      String
+  categoryId    String?
+  name          String
+  description   String?
+  durationMin   Int
+  price         Decimal  @db.Decimal(10, 2)
+  depositAmount Decimal? @db.Decimal(10, 2)
+  isActive      Boolean  @default(true)
+  displayOrder  Int      @default(0)
+  color         String?
+  emoji         String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category      ServiceCategory? @relation(fields: [categoryId], references: [id])
+  professionals ProfessionalService[]
+  bookings      Booking[]
+
+  @@map("services")
+}
+
+model ProfessionalService {
+  professionalId String
+  serviceId      String
+  priceOverride  Decimal? @db.Decimal(10, 2)
+
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([professionalId, serviceId])
+  @@map("professional_services")
+}
+
+// ─────────────────────────────────────────
+// CLIENTES (quien saca el turno)
+// ─────────────────────────────────────────
+model Client {
+  id          String    @id @default(cuid())
+  tenantId    String
+  firstName   String
+  lastName    String
+  phone       String
+  email       String?
+  notes       String?
+  birthDate   DateTime?
+  isVip       Boolean   @default(false)
+  noShowCount Int       @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+
+  @@unique([tenantId, phone])
+  @@map("clients")
+}
+
+// ─────────────────────────────────────────
+// TURNOS
+// ─────────────────────────────────────────
+model Booking {
+  id               String        @id @default(cuid())
+  tenantId         String
+  clientId         String
+  serviceId        String
+  professionalId   String
+  startTime        DateTime
+  endTime          DateTime
+  status           BookingStatus @default(PENDING)
+  notes            String?
+  internalNotes    String?
+  totalPrice       Decimal       @db.Decimal(10, 2)
+  depositPaid      Decimal?      @db.Decimal(10, 2)
+  depositPaymentId String?
+  reminderSentAt   DateTime?
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  source           BookingSource @default(ONLINE)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client           Client       @relation(fields: [clientId], references: [id])
+  service          Service      @relation(fields: [serviceId], references: [id])
+  professional     Professional @relation(fields: [professionalId], references: [id])
+  waitlistEntries  WaitlistEntry[]
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum BookingSource {
+  ONLINE
+  MANUAL
+  WHATSAPP
+}
+
+// ─────────────────────────────────────────
+// LISTA DE ESPERA
+// ─────────────────────────────────────────
+model WaitlistEntry {
+  id             String         @id @default(cuid())
+  tenantId       String
+  clientPhone    String
+  clientName     String
+  serviceId      String?
+  professionalId String?
+  preferredDate  DateTime?
+  status         WaitlistStatus @default(WAITING)
+  notifiedAt     DateTime?
+  bookingId      String?
+  createdAt      DateTime       @default(now())
+
+  booking        Booking? @relation(fields: [bookingId], references: [id])
+
+  @@map("waitlist_entries")
+}
+
+enum WaitlistStatus {
+  WAITING
+  NOTIFIED
+  CONVERTED
+  EXPIRED
+}
+
+// ─────────────────────────────────────────
+// DISPONIBILIDAD
+// ─────────────────────────────────────────
+model WeeklyAvailability {
+  id        String  @id @default(cuid())
+  tenantId  String
+  dayOfWeek Int     // 0=Dom … 6=Sab
+  openTime  String  // "09:00"
+  closeTime String  // "19:00"
+  isOpen    Boolean @default(true)
+
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, dayOfWeek])
+  @@map("weekly_availability")
+}
+
+model ProfessionalAvailability {
+  id             String  @id @default(cuid())
+  professionalId String
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  isAvailable    Boolean @default(true)
+
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, dayOfWeek])
+  @@map("professional_availability")
+}
+
+model TimeOff {
+  id             String   @id @default(cuid())
+  professionalId String
+  startDate      DateTime
+  endDate        DateTime
+  reason         String?
+
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@map("time_off")
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  tenantId  String
+  date      DateTime
+  name      String
+  isClosed  Boolean  @default(true)
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("holidays")
+}

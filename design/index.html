@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo Turnos — Design Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f13; color: #fff; }
+
+  .nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 32px; background: #18181f;
+    border-bottom: 1px solid #2a2a35; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-size: 20px; font-weight: 700; color: #c084fc; letter-spacing: -0.5px; }
+  .nav-logo span { color: #f9a8d4; }
+  .nav-tabs { display: flex; gap: 4px; margin-left: auto; }
+  .nav-tab {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; background: transparent; color: #9ca3af; transition: all 0.2s;
+  }
+  .nav-tab.active { background: #7c3aed; color: #fff; }
+  .nav-tab:hover:not(.active) { background: #2a2a35; color: #fff; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ===== PANTALLA 1: LANDING DEL NEGOCIO (CLIENTE FINAL - MOBILE) ===== */
+  .mobile-frame-wrapper {
+    display: flex; gap: 40px; padding: 40px;
+    justify-content: center; align-items: flex-start; flex-wrap: wrap;
+  }
+  .mobile-label {
+    text-align: center; margin-bottom: 12px;
+    font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .mobile-frame {
+    width: 375px; min-height: 812px; background: #f8f7ff;
+    border-radius: 44px; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 12px #1a1a24, 0 0 0 14px #2d2d3a;
+    position: relative; flex-shrink: 0;
+  }
+
+  /* Booking - Screen 1: Local Profile */
+  .booking-header {
+    background: linear-gradient(160deg, #1e0533 0%, #4a0e8f 60%, #7c3aed 100%);
+    padding: 50px 24px 32px; position: relative; overflow: hidden;
+  }
+  .booking-header::before {
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(249,168,212,0.15); filter: blur(40px);
+  }
+  .booking-header::after {
+    content: ''; position: absolute; bottom: -40px; left: 20px;
+    width: 150px; height: 150px; border-radius: 50%;
+    background: rgba(196,130,252,0.1); filter: blur(30px);
+  }
+  .bh-back {
+    width: 36px; height: 36px; background: rgba(255,255,255,0.15);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px; backdrop-filter: blur(10px); cursor: pointer;
+  }
+  .bh-back svg { width: 16px; height: 16px; }
+  .bh-avatar {
+    width: 80px; height: 80px; border-radius: 22px;
+    background: linear-gradient(135deg, #f9a8d4, #c084fc);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(192,84,252,0.4);
+    border: 3px solid rgba(255,255,255,0.2);
+  }
+  .bh-name { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .bh-type { font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 12px; }
+  .bh-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bh-chip {
+    padding: 4px 10px; background: rgba(255,255,255,0.15);
+    border-radius: 20px; font-size: 11px; color: rgba(255,255,255,0.9);
+    backdrop-filter: blur(5px);
+  }
+  .bh-rating {
+    display: flex; align-items: center; gap: 4px; margin-top: 12px;
+    font-size: 13px; color: #fbbf24; font-weight: 600;
+  }
+  .bh-rating span { color: rgba(255,255,255,0.6); font-weight: 400; margin-left: 2px; }
+
+  .booking-body { background: #f8f7ff; padding: 20px 20px 100px; }
+  .section-title {
+    font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px;
+  }
+  .service-card {
+    background: #fff; border-radius: 16px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 10px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 2px solid transparent; transition: all 0.2s;
+  }
+  .service-card:hover, .service-card.selected {
+    border-color: #c084fc; box-shadow: 0 4px 20px rgba(192,84,252,0.15);
+  }
+  .service-icon {
+    width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .si-pink { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+  .si-purple { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
+  .si-blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+  .si-green { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+  .service-info { flex: 1; }
+  .service-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+  .service-desc { font-size: 12px; color: #9ca3af; }
+  .service-right { text-align: right; }
+  .service-price { font-size: 15px; font-weight: 700; color: #7c3aed; }
+  .service-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+  .booking-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 16px 20px; background: rgba(248,247,255,0.95);
+    backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .btn-primary {
+    width: 100%; padding: 16px; border-radius: 14px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(124,58,237,0.35); transition: transform 0.15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+
+  /* Booking - Screen 2: Fecha/Hora */
+  .cal-header {
+    background: #fff; padding: 20px; border-bottom: 1px solid #f0f0f5;
+  }
+  .cal-month-nav {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .cal-month { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+  .cal-nav-btn {
+    width: 32px; height: 32px; border-radius: 8px; background: #f4f3ff;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: #7c3aed; font-size: 14px;
+  }
+  .cal-days-header {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px;
+  }
+  .cal-day-name { text-align: center; font-size: 11px; font-weight: 600; color: #9ca3af; padding: 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 10px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cal-day.empty { visibility: hidden; }
+  .cal-day.past { color: #d1d5db; cursor: default; }
+  .cal-day.has-slots:hover { background: #f4f3ff; color: #7c3aed; }
+  .cal-day.selected { background: #7c3aed; color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+  .cal-day.today { border: 2px solid #c084fc; color: #7c3aed; font-weight: 700; }
+
+  .time-section { padding: 20px; background: #f8f7ff; }
+  .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .time-slot {
+    padding: 10px 8px; border-radius: 10px; text-align: center;
+    font-size: 13px; font-weight: 600; border: 2px solid #e8e6f0;
+    background: #fff; cursor: pointer; color: #374151; transition: all 0.15s;
+  }
+  .time-slot:hover { border-color: #c084fc; color: #7c3aed; }
+  .time-slot.selected { background: #7c3aed; border-color: #7c3aed; color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+  .time-slot.busy { background: #f3f4f6; color: #d1d5db; cursor: not-allowed; border-color: #f3f4f6; }
+
+  /* Booking - Screen 3: Confirmación */
+  .confirm-hero {
+    background: linear-gradient(160deg, #1e0533, #4a0e8f);
+    padding: 50px 24px 40px; text-align: center;
+  }
+  .confirm-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #4ade80, #22d3ee);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin: 0 auto 16px;
+    box-shadow: 0 8px 32px rgba(74,222,128,0.4);
+  }
+  .confirm-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .confirm-sub { font-size: 14px; color: rgba(255,255,255,0.65); }
+  .confirm-card {
+    margin: 20px; background: #fff; border-radius: 20px;
+    padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .confirm-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid #f0f0f5;
+  }
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-row-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .cri-purple { background: #f4f3ff; }
+  .cri-pink { background: #fce7f3; }
+  .cri-green { background: #d1fae5; }
+  .confirm-row-label { font-size: 11px; color: #9ca3af; margin-bottom: 2px; }
+  .confirm-row-value { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .confirm-actions { padding: 0 20px 20px; display: flex; gap: 10px; }
+  .btn-secondary {
+    flex: 1; padding: 14px; border-radius: 12px; border: 2px solid #e8e6f0;
+    background: #fff; font-size: 13px; font-weight: 600; color: #6b7280; cursor: pointer;
+  }
+  .btn-whatsapp {
+    flex: 1; padding: 14px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+
+  /* ===== PANTALLA 2: DASHBOARD NEGOCIO (DESKTOP) ===== */
+  .dashboard-layout {
+    display: flex; min-height: calc(100vh - 57px); background: #0f0f13;
+  }
+  .sidebar {
+    width: 240px; background: #18181f; border-right: 1px solid #2a2a35;
+    padding: 24px 16px; flex-shrink: 0; display: flex; flex-direction: column;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 24px;
+  }
+  .sidebar-brand-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .sidebar-brand-name { font-size: 16px; font-weight: 700; color: #c084fc; }
+  .sidebar-section { font-size: 10px; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 1px; padding: 0 12px; margin-bottom: 8px; margin-top: 16px; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 10px; cursor: pointer; transition: all 0.15s; margin-bottom: 2px;
+  }
+  .sidebar-item:hover { background: #2a2a35; }
+  .sidebar-item.active { background: rgba(124,58,237,0.2); }
+  .sidebar-item-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-item-label { font-size: 13px; font-weight: 500; color: #9ca3af; }
+  .sidebar-item.active .sidebar-item-label { color: #c084fc; font-weight: 600; }
+  .sidebar-badge {
+    margin-left: auto; background: #7c3aed; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+  }
+  .sidebar-footer { margin-top: auto; }
+  .sidebar-profile {
+    display: flex; align-items: center; gap: 10px; padding: 12px;
+    background: #2a2a35; border-radius: 12px; cursor: pointer;
+  }
+  .sp-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #f9a8d4, #c084fc);
+    display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+  }
+  .sp-name { font-size: 12px; font-weight: 600; color: #e5e7eb; }
+  .sp-plan { font-size: 10px; color: #6b7280; }
+
+  .dashboard-main { flex: 1; overflow: auto; background: #0f0f13; }
+  .dash-topbar {
+    display: flex; align-items: center; padding: 20px 28px;
+    border-bottom: 1px solid #2a2a35; gap: 16px;
+  }
+  .dash-greeting { flex: 1; }
+  .dash-greeting h1 { font-size: 20px; font-weight: 700; color: #f9fafb; margin-bottom: 2px; }
+  .dash-greeting p { font-size: 13px; color: #6b7280; }
+  .dash-date-pill {
+    padding: 8px 16px; background: #2a2a35; border-radius: 10px;
+    font-size: 12px; font-weight: 600; color: #9ca3af;
+  }
+  .dash-search {
+    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+    background: #2a2a35; border-radius: 10px; border: 1px solid #3a3a45;
+  }
+  .dash-search input {
+    background: none; border: none; outline: none; color: #9ca3af; font-size: 13px; width: 160px;
+  }
+
+  .dash-content { padding: 24px 28px; }
+
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .kpi-card {
+    background: #18181f; border-radius: 16px; padding: 20px;
+    border: 1px solid #2a2a35; position: relative; overflow: hidden;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .kpi-card.kpi-purple::before { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+  .kpi-card.kpi-pink::before { background: linear-gradient(90deg, #db2777, #f9a8d4); }
+  .kpi-card.kpi-green::before { background: linear-gradient(90deg, #059669, #4ade80); }
+  .kpi-card.kpi-orange::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .kpi-value { font-size: 28px; font-weight: 800; color: #f9fafb; margin-bottom: 6px; }
+  .kpi-change { font-size: 12px; font-weight: 500; }
+  .kpi-change.up { color: #4ade80; }
+  .kpi-change.down { color: #f87171; }
+  .kpi-icon { position: absolute; top: 16px; right: 16px; font-size: 24px; opacity: 0.15; }
+
+  /* Main grid */
+  .dash-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+
+  /* Agenda del día */
+  .agenda-card {
+    background: #18181f; border-radius: 16px; border: 1px solid #2a2a35; overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px; border-bottom: 1px solid #2a2a35;
+  }
+  .card-title { font-size: 15px; font-weight: 700; color: #f9fafb; }
+  .card-action {
+    font-size: 12px; font-weight: 600; color: #7c3aed; cursor: pointer;
+    padding: 6px 12px; border-radius: 8px; background: rgba(124,58,237,0.1);
+  }
+
+  .agenda-timeline { padding: 16px 20px; }
+  .timeline-item {
+    display: flex; gap: 14px; margin-bottom: 12px; position: relative;
+  }
+  .timeline-item::before {
+    content: ''; position: absolute; left: 52px; top: 40px; bottom: -12px;
+    width: 1px; background: #2a2a35;
+  }
+  .timeline-item:last-child::before { display: none; }
+  .tl-time {
+    width: 44px; text-align: right; font-size: 11px; font-weight: 600;
+    color: #6b7280; padding-top: 10px; flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 10px; height: 10px; border-radius: 50%; margin-top: 14px;
+    flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .tl-dot.purple { background: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
+  .tl-dot.pink { background: #db2777; box-shadow: 0 0 0 3px rgba(219,39,119,0.2); }
+  .tl-dot.green { background: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.2); }
+  .tl-dot.orange { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.2); }
+  .tl-dot.blue { background: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.2); }
+  .tl-card {
+    flex: 1; border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .tl-card:hover { transform: translateX(2px); }
+  .tl-card.c-purple { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); }
+  .tl-card.c-pink { background: rgba(219,39,119,0.1); border: 1px solid rgba(219,39,119,0.2); }
+  .tl-card.c-green { background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.2); }
+  .tl-card.c-orange { background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.2); }
+  .tl-card.c-blue { background: rgba(2,132,199,0.1); border: 1px solid rgba(2,132,199,0.2); }
+  .tl-avatar {
+    width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    background: rgba(255,255,255,0.1);
+  }
+  .tl-info { flex: 1; }
+  .tl-client { font-size: 13px; font-weight: 600; color: #f9fafb; margin-bottom: 2px; }
+  .tl-service { font-size: 11px; color: #9ca3af; }
+  .tl-right { text-align: right; }
+  .tl-duration { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; }
+  .tl-status {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .ts-confirmed { background: rgba(5,150,105,0.15); color: #4ade80; }
+  .ts-pending { background: rgba(217,119,6,0.15); color: #fbbf24; }
+  .ts-done { background: rgba(107,114,128,0.15); color: #9ca3af; }
+  .ts-new { background: rgba(124,58,237,0.2); color: #c084fc; }
+
+  /* Panel derecho */
+  .right-panels { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Próximos turnos vacíos / espera */
+  .waitlist-card {
+    background: #18181f; border-radius: 16px; border: 1px solid #2a2a35; overflow: hidden;
+  }
+  .waitlist-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+    border-bottom: 1px solid #2a2a35;
+  }
+  .waitlist-item:last-child { border-bottom: none; }
+  .wl-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .wl-name { font-size: 13px; font-weight: 600; color: #e5e7eb; }
+  .wl-service { font-size: 11px; color: #6b7280; }
+  .wl-time { margin-left: auto; font-size: 11px; font-weight: 600; color: #9ca3af; }
+
+  /* Quick stats */
+  .stats-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-mini-card {
+    background: #18181f; border-radius: 14px; border: 1px solid #2a2a35; padding: 16px;
+    text-align: center;
+  }
+  .smc-value { font-size: 22px; font-weight: 800; color: #f9fafb; margin-bottom: 4px; }
+  .smc-label { font-size: 11px; color: #6b7280; font-weight: 500; }
+
+  /* Profesionales */
+  .prof-grid { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .prof-item {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .prof-avatar {
+    width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .pa-1 { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+  .pa-2 { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
+  .pa-3 { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+  .prof-name { font-size: 13px; font-weight: 600; color: #e5e7eb; }
+  .prof-role { font-size: 11px; color: #6b7280; }
+  .prof-load { margin-left: auto; text-align: right; }
+  .prof-load-bar {
+    width: 80px; height: 6px; background: #2a2a35; border-radius: 3px; overflow: hidden; margin-bottom: 4px;
+  }
+  .prof-load-fill { height: 100%; border-radius: 3px; }
+  .plf-high { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+  .plf-med { background: linear-gradient(90deg, #db2777, #f9a8d4); }
+  .plf-low { background: linear-gradient(90deg, #059669, #4ade80); }
+  .prof-pct { font-size: 11px; font-weight: 600; color: #9ca3af; text-align: right; }
+
+  /* ===== PANTALLA 3: AGENDA VISUAL ===== */
+  .agenda-view { background: #0f0f13; min-height: calc(100vh - 57px); }
+  .agenda-header-bar {
+    display: flex; align-items: center; gap: 16px; padding: 20px 28px;
+    border-bottom: 1px solid #2a2a35; background: #18181f;
+  }
+  .agenda-nav { display: flex; gap: 4px; }
+  .agenda-nav-btn {
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; background: #2a2a35; color: #9ca3af; transition: all 0.2s;
+  }
+  .agenda-nav-btn.active { background: #7c3aed; color: #fff; }
+  .agenda-week-nav { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+  .awn-btn {
+    width: 32px; height: 32px; border-radius: 8px; background: #2a2a35;
+    border: none; cursor: pointer; color: #9ca3af; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .awn-label { font-size: 14px; font-weight: 600; color: #f9fafb; }
+  .agenda-add-btn {
+    margin-left: auto; padding: 10px 18px; border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff; font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 4px 14px rgba(124,58,237,0.3);
+  }
+
+  .agenda-grid-wrapper { display: flex; padding: 0; overflow: auto; }
+  .time-col {
+    width: 60px; flex-shrink: 0; background: #18181f;
+    border-right: 1px solid #2a2a35; padding-top: 56px;
+  }
+  .time-slot-label {
+    height: 72px; display: flex; align-items: flex-start; justify-content: flex-end;
+    padding-right: 12px; font-size: 11px; color: #4b5563; font-weight: 500;
+  }
+  .staff-cols { display: flex; flex: 1; overflow: auto; }
+  .staff-col { flex: 1; min-width: 160px; border-right: 1px solid #2a2a35; }
+  .staff-header {
+    height: 56px; display: flex; align-items: center; justify-content: center;
+    gap: 8px; background: #18181f; border-bottom: 1px solid #2a2a35; padding: 0 12px;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .sh-avatar {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .sh-name { font-size: 12px; font-weight: 600; color: #d1d5db; }
+  .sh-dot { width: 6px; height: 6px; border-radius: 50%; margin-left: auto; }
+  .sh-dot.online { background: #4ade80; }
+
+  .time-grid-body { position: relative; }
+  .time-row {
+    height: 72px; border-bottom: 1px solid #1e1e28; position: relative;
+  }
+  .time-row.alt { background: rgba(255,255,255,0.01); }
+  .appt-block {
+    position: absolute; left: 6px; right: 6px; border-radius: 10px;
+    padding: 8px 10px; cursor: pointer; overflow: hidden; transition: all 0.15s;
+  }
+  .appt-block:hover { transform: scale(1.02); z-index: 10; }
+  .appt-block::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 10px 0 0 10px;
+  }
+  .ab-purple { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.3); }
+  .ab-purple::before { background: #7c3aed; }
+  .ab-pink { background: rgba(219,39,119,0.15); border: 1px solid rgba(219,39,119,0.25); }
+  .ab-pink::before { background: #db2777; }
+  .ab-green { background: rgba(5,150,105,0.15); border: 1px solid rgba(5,150,105,0.25); }
+  .ab-green::before { background: #059669; }
+  .ab-orange { background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.25); }
+  .ab-orange::before { background: #d97706; }
+  .ab-blue { background: rgba(2,132,199,0.15); border: 1px solid rgba(2,132,199,0.25); }
+  .ab-blue::before { background: #0284c7; }
+  .ab-client { font-size: 11px; font-weight: 700; color: #f9fafb; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ab-service { font-size: 10px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid { grid-template-columns: 1fr; }
+    .mobile-frame-wrapper { padding: 20px; }
+  }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .screen.active { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">nexo<span>turnos</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen('booking')">Reserva (cliente)</button>
+    <button class="nav-tab" onclick="showScreen('dashboard')">Dashboard (negocio)</button>
+    <button class="nav-tab" onclick="showScreen('agenda')">Agenda visual</button>
+  </div>
+</nav>
+
+<!-- ===== SCREEN 1: BOOKING FLOW ===== -->
+<div id="screen-booking" class="screen active">
+  <div class="mobile-frame-wrapper">
+
+    <!-- Frame 1: Perfil del local -->
+    <div>
+      <div class="mobile-label">1 — Perfil del local</div>
+      <div class="mobile-frame">
+        <div class="booking-header">
+          <div class="bh-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+          <div class="bh-avatar">💅</div>
+          <div class="bh-name">Studio Lumière</div>
+          <div class="bh-type">Centro de Estética · Palermo, CABA</div>
+          <div class="bh-rating">
+            ★ 4.9 <span>(284 reseñas)</span>
+          </div>
+          <div class="bh-chips" style="margin-top:10px">
+            <div class="bh-chip">Uñas</div>
+            <div class="bh-chip">Depilación</div>
+            <div class="bh-chip">Faciales</div>
+            <div class="bh-chip">Maquillaje</div>
+          </div>
+        </div>
+        <div class="booking-body">
+          <div class="section-title">¿Qué servicio necesitás?</div>
+
+          <div class="service-card selected">
+            <div class="service-icon si-pink">💅</div>
+            <div class="service-info">
+              <div class="service-name">Manicura + Kapping</div>
+              <div class="service-desc">Preparación, escultura y detalle</div>
+            </div>
+            <div class="service-right">
+              <div class="service-price">$9.500</div>
+              <div class="service-time">⏱ 90 min</div>
+            </div>
+          </div>
+
+          <div class="service-card">
+            <div class="service-icon si-purple">✨</div>
+            <div class="service-info">
+              <div class="service-name">Diseño Nail Art</div>
+              <div class="service-desc">Decoración personalizada</div>
+            </div>
+            <div class="service-right">
+              <div class="service-price">$7.200</div>
+              <div class="service-time">⏱ 60 min</div>
+            </div>
+          </div>
+
+          <div class="service-card">
+            <div class="service-icon si-blue">🧖</div>
+            <div class="service-info">
+              <div class="service-name">Depilación facial</div>
+              <div class="service-desc">Ceja + bozo + mentón</div>
+            </div>
+            <div class="service-right">
+              <div class="service-price">$4.800</div>
+              <div class="service-time">⏱ 30 min</div>
+            </div>
+          </div>
+
+          <div class="service-card">
+            <div class="service-icon si-green">💆</div>
+            <div class="service-info">
+              <div class="service-name">Lifting de pestañas</div>
+              <div class="service-desc">Con laminado y tinte</div>
+            </div>
+            <div class="service-right">
+              <div class="service-price">$8.900</div>
+              <div class="service-time">⏱ 75 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="booking-footer">
+          <button class="btn-primary">Elegir fecha y horario →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frame 2: Fecha y hora -->
+    <div>
+      <div class="mobile-label">2 — Fecha y horario</div>
+      <div class="mobile-frame" style="min-height: 812px; background: #f8f7ff;">
+        <div style="background: #18181f; padding: 50px 20px 16px; display:flex; align-items:center; gap:12px;">
+          <div class="bh-back"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div>
+            <div style="font-size:16px; font-weight:700; color:#fff;">Elegí tu turno</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6);">Manicura + Kapping · 90 min</div>
+          </div>
+        </div>
+
+        <div style="background:#fff; margin:16px; border-radius:16px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;">Profesional</div>
+          </div>
+          <div style="display:flex;gap:10px;overflow:auto;padding:8px 0;">
+            <div style="flex-shrink:0;text-align:center;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 6px;border:3px solid #7c3aed;box-shadow:0 4px 12px rgba(124,58,237,0.3);">👩</div>
+              <div style="font-size:11px;font-weight:600;color:#7c3aed;">Valeria</div>
+            </div>
+            <div style="flex-shrink:0;text-align:center;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#fce7f3,#fbcfe8);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 6px;">👩‍🦱</div>
+              <div style="font-size:11px;color:#6b7280;">Sofía</div>
+            </div>
+            <div style="flex-shrink:0;text-align:center;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 6px;">💁</div>
+              <div style="font-size:11px;color:#6b7280;">Mía</div>
+            </div>
+            <div style="flex-shrink:0;text-align:center;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:16px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto 6px;color:#9ca3af;">Sin<br>pref.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cal-header" style="margin:0 16px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+          <div class="cal-month-nav">
+            <button class="cal-nav-btn">‹</button>
+            <div class="cal-month">Abril 2026</div>
+            <button class="cal-nav-btn">›</button>
+          </div>
+          <div class="cal-days-header">
+            <div class="cal-day-name">L</div><div class="cal-day-name">M</div>
+            <div class="cal-day-name">X</div><div class="cal-day-name">J</div>
+            <div class="cal-day-name">V</div><div class="cal-day-name">S</div>
+            <div class="cal-day-name">D</div>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-day empty"></div><div class="cal-day empty"></div>
+            <div class="cal-day past">1</div><div class="cal-day past">2</div>
+            <div class="cal-day past">3</div><div class="cal-day today">4</div>
+            <div class="cal-day past">5</div><div class="cal-day has-slots">6</div>
+            <div class="cal-day has-slots">7</div><div class="cal-day has-slots">8</div>
+            <div class="cal-day has-slots">9</div><div class="cal-day has-slots">10</div>
+            <div class="cal-day selected">11</div><div class="cal-day has-slots">12</div>
+            <div class="cal-day has-slots">13</div><div class="cal-day has-slots">14</div>
+            <div class="cal-day has-slots">15</div><div class="cal-day has-slots">16</div>
+            <div class="cal-day has-slots">17</div><div class="cal-day past" style="color:#d1d5db">18</div>
+            <div class="cal-day has-slots">19</div>
+          </div>
+        </div>
+
+        <div class="time-section">
+          <div class="section-title" style="color:#1a1a2e; font-size:14px;">Sábado 11 de Abril</div>
+          <div class="time-grid">
+            <div class="time-slot busy">09:00</div>
+            <div class="time-slot busy">09:30</div>
+            <div class="time-slot">10:00</div>
+            <div class="time-slot">10:30</div>
+            <div class="time-slot selected">11:00</div>
+            <div class="time-slot">11:30</div>
+            <div class="time-slot busy">12:00</div>
+            <div class="time-slot">14:00</div>
+            <div class="time-slot">14:30</div>
+            <div class="time-slot">15:00</div>
+            <div class="time-slot busy">15:30</div>
+            <div class="time-slot">16:00</div>
+          </div>
+        </div>
+
+        <div class="booking-footer" style="position:relative;">
+          <button class="btn-primary">Confirmar turno →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frame 3: Confirmación -->
+    <div>
+      <div class="mobile-label">3 — Turno confirmado</div>
+      <div class="mobile-frame" style="background:#f8f7ff;">
+        <div class="confirm-hero">
+          <div class="confirm-icon">✓</div>
+          <div class="confirm-title">¡Turno reservado!</div>
+          <div class="confirm-sub">Te esperamos en Studio Lumière</div>
+        </div>
+
+        <div class="confirm-card">
+          <div style="font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Detalle de tu turno</div>
+          <div class="confirm-row">
+            <div class="confirm-row-icon cri-purple">💅</div>
+            <div>
+              <div class="confirm-row-label">Servicio</div>
+              <div class="confirm-row-value">Manicura + Kapping</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="confirm-row-icon cri-pink">👩</div>
+            <div>
+              <div class="confirm-row-label">Profesional</div>
+              <div class="confirm-row-value">Valeria García</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="confirm-row-icon cri-purple">📅</div>
+            <div>
+              <div class="confirm-row-label">Fecha y hora</div>
+              <div class="confirm-row-value">Sáb 11 Abr · 11:00 hs</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="confirm-row-icon cri-green">⏱</div>
+            <div>
+              <div class="confirm-row-label">Duración estimada</div>
+              <div class="confirm-row-value">90 minutos</div>
+            </div>
+          </div>
+          <div class="confirm-row">
+            <div class="confirm-row-icon cri-pink">💰</div>
+            <div>
+              <div class="confirm-row-label">Total</div>
+              <div class="confirm-row-value" style="color:#7c3aed;">$9.500</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin:0 20px;padding:14px;background:rgba(124,58,237,0.08);border-radius:12px;border:1px solid rgba(124,58,237,0.2);font-size:12px;color:#7c3aed;font-weight:500;">
+          📩 Te enviamos confirmación por WhatsApp al +54 9 11 ···· 4521
+        </div>
+
+        <div class="confirm-actions" style="margin-top:16px;">
+          <button class="btn-secondary">Reagendar</button>
+          <button class="btn-whatsapp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Compartir
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SCREEN 2: DASHBOARD ===== -->
+<div id="screen-dashboard" class="screen">
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">💅</div>
+        <div class="sidebar-brand-name">Studio Lumière</div>
+      </div>
+
+      <div class="sidebar-section">Principal</div>
+      <div class="sidebar-item active">
+        <div class="sidebar-item-icon">📊</div>
+        <div class="sidebar-item-label">Dashboard</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">📅</div>
+        <div class="sidebar-item-label">Agenda</div>
+        <div class="sidebar-badge">3</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">👥</div>
+        <div class="sidebar-item-label">Clientes</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">⏳</div>
+        <div class="sidebar-item-label">Lista de espera</div>
+        <div class="sidebar-badge">5</div>
+      </div>
+
+      <div class="sidebar-section">Gestión</div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">✨</div>
+        <div class="sidebar-item-label">Servicios</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">👩‍💼</div>
+        <div class="sidebar-item-label">Profesionales</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">💳</div>
+        <div class="sidebar-item-label">Pagos y señas</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">📣</div>
+        <div class="sidebar-item-label">Recordatorios</div>
+      </div>
+
+      <div class="sidebar-section">Reportes</div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">📈</div>
+        <div class="sidebar-item-label">Estadísticas</div>
+      </div>
+      <div class="sidebar-item">
+        <div class="sidebar-item-icon">⭐</div>
+        <div class="sidebar-item-label">Reseñas</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-profile">
+          <div class="sp-avatar">👩</div>
+          <div>
+            <div class="sp-name">Valeria García</div>
+            <div class="sp-plan">Plan Pro ✦</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dash-topbar">
+        <div class="dash-greeting">
+          <h1>Buenos días, Valeria 👋</h1>
+          <p>Tenés 8 turnos hoy · 2 pendientes de confirmación</p>
+        </div>
+        <div class="dash-date-pill">📅 Viernes, 4 de Abril 2026</div>
+        <div class="dash-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input placeholder="Buscar cliente o turno..." />
+        </div>
+      </div>
+
+      <div class="dash-content">
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-purple">
+            <div class="kpi-icon">📅</div>
+            <div class="kpi-label">Turnos hoy</div>
+            <div class="kpi-value">8</div>
+            <div class="kpi-change up">↑ 2 más que ayer</div>
+          </div>
+          <div class="kpi-card kpi-pink">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-label">Facturado hoy</div>
+            <div class="kpi-value">$64.200</div>
+            <div class="kpi-change up">↑ 18% vs. semana pasada</div>
+          </div>
+          <div class="kpi-card kpi-green">
+            <div class="kpi-icon">👥</div>
+            <div class="kpi-label">Clientes activos</div>
+            <div class="kpi-value">284</div>
+            <div class="kpi-change up">↑ 12 nuevos este mes</div>
+          </div>
+          <div class="kpi-card kpi-orange">
+            <div class="kpi-icon">🚫</div>
+            <div class="kpi-label">No-shows mes</div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-change down">↓ 67% con señas activadas</div>
+          </div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="dash-grid">
+          <!-- Agenda del día -->
+          <div class="agenda-card">
+            <div class="card-header">
+              <div class="card-title">Agenda de hoy</div>
+              <div class="card-action">Ver completa →</div>
+            </div>
+            <div class="agenda-timeline">
+
+              <div class="timeline-item">
+                <div class="tl-time">09:00</div>
+                <div class="tl-dot green"></div>
+                <div class="tl-card c-green">
+                  <div class="tl-avatar">👩‍🦰</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Martina López</div>
+                    <div class="tl-service">Manicura + Kapping · Valeria</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">90 min</div>
+                    <div class="tl-status ts-done">Finalizado</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="tl-time">10:30</div>
+                <div class="tl-dot green"></div>
+                <div class="tl-card c-green">
+                  <div class="tl-avatar">👱‍♀️</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Camila Ruiz</div>
+                    <div class="tl-service">Depilación facial · Sofía</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">30 min</div>
+                    <div class="tl-status ts-done">Finalizado</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="tl-time">11:00</div>
+                <div class="tl-dot purple"></div>
+                <div class="tl-card c-purple">
+                  <div class="tl-avatar">🧑‍🦳</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Luciana Díaz</div>
+                    <div class="tl-service">Lifting de pestañas · Mía</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">75 min</div>
+                    <div class="tl-status ts-confirmed">Confirmado</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="tl-time">12:30</div>
+                <div class="tl-dot orange"></div>
+                <div class="tl-card c-orange">
+                  <div class="tl-avatar">👩</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Paula Torres</div>
+                    <div class="tl-service">Nail Art Design · Valeria</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">60 min</div>
+                    <div class="tl-status ts-pending">Pendiente</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="tl-time">14:00</div>
+                <div class="tl-dot blue"></div>
+                <div class="tl-card c-blue">
+                  <div class="tl-avatar">👩‍🦱</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Florencia Vega</div>
+                    <div class="tl-service">Maquillaje social · Sofía</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">90 min</div>
+                    <div class="tl-status ts-confirmed">Confirmado</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="tl-time">15:30</div>
+                <div class="tl-dot pink"></div>
+                <div class="tl-card c-pink">
+                  <div class="tl-avatar">🧕</div>
+                  <div class="tl-info">
+                    <div class="tl-client">Andrea Sosa</div>
+                    <div class="tl-service">Facial hidratante · Mía</div>
+                  </div>
+                  <div class="tl-right">
+                    <div class="tl-duration">60 min</div>
+                    <div class="tl-status ts-new">Nuevo</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Panel derecho -->
+          <div class="right-panels">
+
+            <!-- Mini stats -->
+            <div class="stats-mini">
+              <div class="stat-mini-card">
+                <div class="smc-value" style="color:#4ade80;">92%</div>
+                <div class="smc-label">Ocupación hoy</div>
+              </div>
+              <div class="stat-mini-card">
+                <div class="smc-value" style="color:#c084fc;">5</div>
+                <div class="smc-label">En lista de espera</div>
+              </div>
+              <div class="stat-mini-card">
+                <div class="smc-value" style="color:#fbbf24;">$9.500</div>
+                <div class="smc-label">Ticket promedio</div>
+              </div>
+              <div class="stat-mini-card">
+                <div class="smc-value" style="color:#f9a8d4;">4.9 ★</div>
+                <div class="smc-label">Valoración</div>
+              </div>
+            </div>
+
+            <!-- Lista de espera -->
+            <div class="waitlist-card">
+              <div class="card-header">
+                <div class="card-title">⏳ Lista de espera</div>
+                <div class="card-action" style="font-size:11px;">Notificar todo</div>
+              </div>
+              <div class="waitlist-item">
+                <div class="wl-avatar">👩</div>
+                <div>
+                  <div class="wl-name">Rocío Méndez</div>
+                  <div class="wl-service">Manicura · cualquier profesional</div>
+                </div>
+                <div class="wl-time">Hoy</div>
+              </div>
+              <div class="waitlist-item">
+                <div class="wl-avatar" style="background:linear-gradient(135deg,#db2777,#f9a8d4);">👱</div>
+                <div>
+                  <div class="wl-name">Daniela Paz</div>
+                  <div class="wl-service">Lifting pestañas · Mía</div>
+                </div>
+                <div class="wl-time">Sáb</div>
+              </div>
+              <div class="waitlist-item">
+                <div class="wl-avatar" style="background:linear-gradient(135deg,#059669,#4ade80);">🧑</div>
+                <div>
+                  <div class="wl-name">Sabrina Leiva</div>
+                  <div class="wl-service">Kapping + Diseño</div>
+                </div>
+                <div class="wl-time">Sáb</div>
+              </div>
+            </div>
+
+            <!-- Profesionales -->
+            <div class="agenda-card">
+              <div class="card-header">
+                <div class="card-title">Equipo · hoy</div>
+              </div>
+              <div class="prof-grid">
+                <div class="prof-item">
+                  <div class="prof-avatar pa-1">👩</div>
+                  <div>
+                    <div class="prof-name">Valeria G.</div>
+                    <div class="prof-role">Uñas · senior</div>
+                  </div>
+                  <div class="prof-load">
+                    <div class="prof-load-bar"><div class="prof-load-fill plf-high" style="width:90%"></div></div>
+                    <div class="prof-pct">90%</div>
+                  </div>
+                </div>
+                <div class="prof-item">
+                  <div class="prof-avatar pa-2">👩‍🦱</div>
+                  <div>
+                    <div class="prof-name">Sofía M.</div>
+                    <div class="prof-role">Depilación · maquillaje</div>
+                  </div>
+                  <div class="prof-load">
+                    <div class="prof-load-bar"><div class="prof-load-fill plf-med" style="width:65%"></div></div>
+                    <div class="prof-pct">65%</div>
+                  </div>
+                </div>
+                <div class="prof-item">
+                  <div class="prof-avatar pa-3">💁</div>
+                  <div>
+                    <div class="prof-name">Mía R.</div>
+                    <div class="prof-role">Faciales · pestañas</div>
+                  </div>
+                  <div class="prof-load">
+                    <div class="prof-load-bar"><div class="prof-load-fill plf-low" style="width:45%"></div></div>
+                    <div class="prof-pct">45%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== SCREEN 3: AGENDA VISUAL ===== -->
+<div id="screen-agenda" class="screen">
+  <div class="agenda-view">
+    <div class="agenda-header-bar">
+      <div class="agenda-nav">
+        <button class="agenda-nav-btn">Día</button>
+        <button class="agenda-nav-btn active">Semana</button>
+        <button class="agenda-nav-btn">Mes</button>
+      </div>
+      <div class="agenda-week-nav">
+        <button class="awn-btn">‹</button>
+        <div class="awn-label">31 Mar — 6 Abr, 2026</div>
+        <button class="awn-btn">›</button>
+      </div>
+      <button class="agenda-add-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo turno
+      </button>
+    </div>
+
+    <div class="agenda-grid-wrapper">
+      <!-- Time column -->
+      <div class="time-col">
+        <div class="time-slot-label">09:00</div>
+        <div class="time-slot-label">10:00</div>
+        <div class="time-slot-label">11:00</div>
+        <div class="time-slot-label">12:00</div>
+        <div class="time-slot-label">13:00</div>
+        <div class="time-slot-label">14:00</div>
+        <div class="time-slot-label">15:00</div>
+        <div class="time-slot-label">16:00</div>
+        <div class="time-slot-label">17:00</div>
+      </div>
+
+      <!-- Staff columns -->
+      <div class="staff-cols">
+
+        <!-- Valeria -->
+        <div class="staff-col">
+          <div class="staff-header">
+            <div class="sh-avatar pa-1" style="border-radius:8px;background:linear-gradient(135deg,#fce7f3,#fbcfe8);">👩</div>
+            <div class="sh-name">Valeria</div>
+            <div class="sh-dot online"></div>
+          </div>
+          <div class="time-grid-body">
+            <div class="time-row"></div>
+            <div class="time-row alt">
+              <div class="appt-block ab-purple" style="top:4px;height:130px;">
+                <div class="ab-client">Martina López</div>
+                <div class="ab-service">Manicura + Kapping</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+            <div class="time-row alt">
+              <div class="appt-block ab-orange" style="top:4px;height:64px;">
+                <div class="ab-client">Paula Torres</div>
+                <div class="ab-service">Nail Art</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+            <div class="time-row alt"></div>
+            <div class="time-row"></div>
+            <div class="time-row alt">
+              <div class="appt-block ab-purple" style="top:4px;height:130px;">
+                <div class="ab-client">Valentina Cruz</div>
+                <div class="ab-service">Manicura + Pedicura</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+          </div>
+        </div>
+
+        <!-- Sofía -->
+        <div class="staff-col">
+          <div class="staff-header">
+            <div class="sh-avatar" style="border-radius:8px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);">👩‍🦱</div>
+            <div class="sh-name">Sofía</div>
+            <div class="sh-dot online"></div>
+          </div>
+          <div class="time-grid-body">
+            <div class="time-row">
+              <div class="appt-block ab-pink" style="top:4px;height:44px;">
+                <div class="ab-client">Camila Ruiz</div>
+                <div class="ab-service">Depilación facial</div>
+              </div>
+            </div>
+            <div class="time-row alt"></div>
+            <div class="time-row"></div>
+            <div class="time-row alt"></div>
+            <div class="time-row"></div>
+            <div class="time-row alt">
+              <div class="appt-block ab-blue" style="top:4px;height:130px;">
+                <div class="ab-client">Florencia Vega</div>
+                <div class="ab-service">Maquillaje social</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+            <div class="time-row alt">
+              <div class="appt-block ab-pink" style="top:4px;height:64px;">
+                <div class="ab-client">Romina Paz</div>
+                <div class="ab-service">Depilación piernas</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+          </div>
+        </div>
+
+        <!-- Mía -->
+        <div class="staff-col">
+          <div class="staff-header">
+            <div class="sh-avatar" style="border-radius:8px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);">💁</div>
+            <div class="sh-name">Mía</div>
+            <div class="sh-dot online"></div>
+          </div>
+          <div class="time-grid-body">
+            <div class="time-row"></div>
+            <div class="time-row alt"></div>
+            <div class="time-row">
+              <div class="appt-block ab-green" style="top:4px;height:108px;">
+                <div class="ab-client">Luciana Díaz</div>
+                <div class="ab-service">Lifting pestañas</div>
+              </div>
+            </div>
+            <div class="time-row alt"></div>
+            <div class="time-row"></div>
+            <div class="time-row alt"></div>
+            <div class="time-row">
+              <div class="appt-block ab-green" style="top:4px;height:64px;">
+                <div class="ab-client">Andrea Sosa</div>
+                <div class="ab-service">Facial hidratante</div>
+              </div>
+            </div>
+            <div class="time-row alt">
+              <div class="appt-block ab-orange" style="top:4px;height:44px;">
+                <div class="ab-client">Gimena Torres</div>
+                <div class="ab-service">Diseño de cejas</div>
+              </div>
+            </div>
+            <div class="time-row"></div>
+          </div>
+        </div>
+
+        <!-- Slot libre -->
+        <div class="staff-col" style="opacity:0.5;">
+          <div class="staff-header" style="background:#18181f;">
+            <div class="sh-avatar" style="border-radius:8px;background:#2a2a35;font-size:18px;">+</div>
+            <div class="sh-name" style="color:#4b5563;">Agregar</div>
+          </div>
+          <div class="time-grid-body">
+            <div class="time-row"></div><div class="time-row alt"></div>
+            <div class="time-row"></div><div class="time-row alt"></div>
+            <div class="time-row"></div><div class="time-row alt"></div>
+            <div class="time-row"></div><div class="time-row alt"></div>
+            <div class="time-row"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Interactive service selection
+document.querySelectorAll('.service-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+  });
+});
+
+// Interactive time slots
+document.querySelectorAll('.time-slot:not(.busy)').forEach(slot => {
+  slot.addEventListener('click', () => {
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    slot.classList.add('selected');
+  });
+});
+
+// Interactive calendar days
+document.querySelectorAll('.cal-day.has-slots').forEach(day => {
+  day.addEventListener('click', () => {
+    document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+    day.classList.add('selected');
+  });
+});
+</script>
+</body>
+</html>

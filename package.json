@@ -1,0 +1,16 @@
+{
+  "name": "nexo-turnos",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "mobile"
+  ],
+  "scripts": {
+    "backend": "npm run start:dev --workspace=backend",
+    "mobile": "npm run start --workspace=mobile"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.0"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+dist/
+.next/
+*.log
+.DS_Store
+
+# Prisma generated client (se regenera con prisma generate)
+generated/
+
+# Build info
+*.tsbuildinfo
