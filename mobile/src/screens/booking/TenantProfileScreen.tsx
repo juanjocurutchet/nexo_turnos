@@ -3,14 +3,13 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator, StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, Tenant, Service } from '../../types';
+import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { tenantApi } from '../../services/api';
 import { useBookingStore } from '../../store/bookingStore';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'TenantProfile'>;
+type Props = { navigation: AppNavigation; route: AppRoute<'TenantProfile'> };
 
 const SERVICE_ICONS: Record<string, { bg: string }> = {
   '💅': { bg: '#fce7f3' },
@@ -31,7 +30,7 @@ export function TenantProfileScreen({ navigation, route }: Props) {
   useEffect(() => {
     tenantApi.getPublicProfile(slug)
       .then((data) => { setTenant(data); storeTenant(data); })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -64,12 +63,7 @@ export function TenantProfileScreen({ navigation, route }: Props) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
         {/* Header */}
-        <LinearGradient
-          colors={['#1e0533', '#4a0e8f', '#7c3aed']}
-          start={[0, 0]}
-          end={[1, 1]}
-          style={styles.header}
-        >
+        <View style={styles.header}>
           <View style={styles.avatar}>
             <Text style={{ fontSize: 36 }}>💅</Text>
           </View>
@@ -88,7 +82,7 @@ export function TenantProfileScreen({ navigation, route }: Props) {
               </View>
             ))}
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Servicios */}
         <View style={styles.body}>
@@ -133,14 +127,9 @@ export function TenantProfileScreen({ navigation, route }: Props) {
           disabled={!selected}
           activeOpacity={0.85}
         >
-          <LinearGradient
-            colors={selected ? ['#7c3aed', '#a855f7'] : ['#4b5563', '#4b5563']}
-            start={[0, 0]}
-            end={[1, 0]}
-            style={styles.footerBtn}
-          >
+          <View style={[styles.footerBtn, !selected && styles.footerBtnDisabled]}>
             <Text style={styles.footerBtnText}>Elegir fecha y horario →</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -151,7 +140,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   loadingContainer: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
 
-  header: { paddingTop: 60, paddingBottom: 28, paddingHorizontal: spacing.xl },
+  header: {
+    paddingTop: 60, paddingBottom: 28, paddingHorizontal: spacing.xl,
+    backgroundColor: '#4a0e8f',
+  },
   avatar: {
     width: 80, height: 80, borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -208,10 +200,16 @@ const styles = StyleSheet.create({
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl + BOTTOM_INSET,
     backgroundColor: 'rgba(15,15,19,0.95)',
     borderTopWidth: 1, borderTopColor: colors.border,
   },
-  footerBtn: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  footerBtn: {
+    borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center',
+    backgroundColor: colors.primary,
+  },
+  footerBtnDisabled: { backgroundColor: '#4b5563' },
   footerBtnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
 });

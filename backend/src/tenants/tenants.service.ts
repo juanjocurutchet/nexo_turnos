@@ -60,13 +60,13 @@ export class TenantsService {
   // Disponibilidad por defecto: Lun-Vie 9-19, Sáb 9-14, Dom cerrado
   private defaultWeeklyAvailability() {
     return [
-      { dayOfWeek: 0, openTime: '09:00', closeTime: '18:00', isOpen: false }, // Dom
-      { dayOfWeek: 1, openTime: '09:00', closeTime: '19:00', isOpen: true },  // Lun
-      { dayOfWeek: 2, openTime: '09:00', closeTime: '19:00', isOpen: true },  // Mar
-      { dayOfWeek: 3, openTime: '09:00', closeTime: '19:00', isOpen: true },  // Mié
-      { dayOfWeek: 4, openTime: '09:00', closeTime: '19:00', isOpen: true },  // Jue
-      { dayOfWeek: 5, openTime: '09:00', closeTime: '19:00', isOpen: true },  // Vie
-      { dayOfWeek: 6, openTime: '09:00', closeTime: '14:00', isOpen: true },  // Sáb
+      { dayOfWeek: 0, openTime: '09:00', closeTime: '21:00', isOpen: false }, // Dom
+      { dayOfWeek: 1, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Lun
+      { dayOfWeek: 2, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Mar
+      { dayOfWeek: 3, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Mié
+      { dayOfWeek: 4, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Jue
+      { dayOfWeek: 5, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Vie
+      { dayOfWeek: 6, openTime: '09:00', closeTime: '15:00', isOpen: true },  // Sáb
     ];
   }
 }

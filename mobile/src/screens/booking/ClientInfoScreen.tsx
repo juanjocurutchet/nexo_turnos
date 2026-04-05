@@ -3,16 +3,12 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, TextInput, StatusBar, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types';
+import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { bookingApi } from '../../services/api';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
+import { DAYS_SHORT, MONTHS_LONG as MONTHS } from '../../utils/dates';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ClientInfo'>;
-
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+type Props = { navigation: AppNavigation; route: AppRoute<'ClientInfo'> };
 
 export function ClientInfoScreen({ navigation, route }: Props) {
   const { tenant, service, professional, date, time } = route.params;
@@ -63,13 +59,13 @@ export function ClientInfoScreen({ navigation, route }: Props) {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
 
-        <LinearGradient colors={['#1e0533', '#4a0e8f']} style={styles.header}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
             <Text style={styles.backArrow}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Tus datos</Text>
           <Text style={styles.subtitle}>Último paso para confirmar</Text>
-        </LinearGradient>
+        </View>
 
         <ScrollView contentContainerStyle={styles.body}>
           {/* Resumen del turno */}
@@ -175,16 +171,12 @@ export function ClientInfoScreen({ navigation, route }: Props) {
             activeOpacity={0.85}
             style={{ marginTop: spacing.xl }}
           >
-            <LinearGradient
-              colors={isValid && !loading ? ['#7c3aed', '#a855f7'] : ['#4b5563', '#4b5563']}
-              start={[0, 0]} end={[1, 0]}
-              style={styles.confirmBtn}
-            >
+            <View style={[styles.confirmBtn, (!isValid || loading) && styles.confirmBtnDisabled]}>
               {loading
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={styles.confirmBtnText}>Confirmar turno ✓</Text>
               }
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -194,13 +186,13 @@ export function ClientInfoScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f7ff' },
-  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl },
+  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl, backgroundColor: '#4a0e8f' },
   back: { marginBottom: spacing.md },
   backArrow: { fontSize: 28, color: '#fff', lineHeight: 28 },
   title: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
   subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
 
-  body: { padding: spacing.xl, paddingBottom: 60 },
+  body: { padding: spacing.xl, paddingBottom: 60 + BOTTOM_INSET },
 
   summaryCard: {
     backgroundColor: colors.white, borderRadius: radius.xl,
@@ -237,6 +229,7 @@ const styles = StyleSheet.create({
 
   errorText: { color: colors.error, fontSize: 13, marginTop: spacing.sm, textAlign: 'center' },
 
-  confirmBtn: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  confirmBtn: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center', backgroundColor: colors.primary },
+  confirmBtnDisabled: { backgroundColor: '#4b5563' },
   confirmBtnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
 });

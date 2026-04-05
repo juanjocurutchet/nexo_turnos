@@ -53,6 +53,10 @@ export const radius = {
   full: 999,
 };
 
+import { Platform } from 'react-native';
+// Altura de la barra de navegación del sistema Android (botones atrás/home/recientes)
+export const BOTTOM_INSET = Platform.OS === 'android' ? 48 : 0;
+
 export const shadow = {
   primary: {
     shadowColor: '#7c3aed',

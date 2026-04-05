@@ -2,7 +2,6 @@ import React from 'react';
 import {
   TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radius, spacing } from '../theme';
 
 interface Props {
@@ -14,10 +13,6 @@ interface Props {
 }
 
 export function GradientButton({ label, onPress, loading, disabled, style }: Props) {
-  const gradColors: [string, string] = disabled
-    ? ['#4b5563', '#4b5563']
-    : ['#7c3aed', '#a855f7'];
-
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -25,27 +20,26 @@ export function GradientButton({ label, onPress, loading, disabled, style }: Pro
       activeOpacity={0.85}
       style={style}
     >
-      <LinearGradient
-        colors={gradColors}
-        start={[0, 0]}
-        end={[1, 0]}
-        style={styles.gradient}
-      >
+      <View style={[styles.btn, disabled && styles.btnDisabled]}>
         {loading
           ? <ActivityIndicator color="#fff" />
           : <Text style={styles.label}>{label}</Text>
         }
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  btn: {
     borderRadius: radius.lg,
     paddingVertical: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primary,
+  },
+  btnDisabled: {
+    backgroundColor: '#4b5563',
   },
   label: {
     color: colors.white,

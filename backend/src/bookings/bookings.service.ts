@@ -23,8 +23,9 @@ export class BookingsService {
     });
     if (!service) throw new NotFoundException('Servicio no encontrado');
 
-    const dateObj = new Date(date);
-    const dayOfWeek = dateObj.getDay();
+    // Usar UTC para evitar que UTC-3 desplace el día de la semana
+    const dateObj = new Date(`${date}T12:00:00.000Z`);
+    const dayOfWeek = dateObj.getUTCDay();
 
     // Verificar que el negocio esté abierto ese día
     const tenantAvailability = await this.prisma.weeklyAvailability.findUnique({

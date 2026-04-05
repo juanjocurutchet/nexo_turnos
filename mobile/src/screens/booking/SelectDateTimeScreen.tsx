@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, StatusBar, ActivityIndicator,
+  TouchableOpacity, StatusBar, ActivityIndicator, Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, TimeSlot } from '../../types';
+import { TimeSlot } from '../../types';
+import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { bookingApi } from '../../services/api';
 import { useBookingStore } from '../../store/bookingStore';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
+import { DAYS_SHORT as DAYS, MONTHS_LONG as MONTHS } from '../../utils/dates';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SelectDateTime'>;
-
-const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+type Props = { navigation: AppNavigation; route: AppRoute<'SelectDateTime'> };
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -25,6 +22,9 @@ function toDateString(d: Date) {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - spacing.xl * 2 - spacing.sm * 2) / 3);
 
 export function SelectDateTimeScreen({ navigation, route }: Props) {
   const { tenant, service, professional } = route.params;
@@ -50,8 +50,8 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
         date,
       });
       setSlots(data);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // error silencioso — la grilla queda vacía
     } finally {
       setLoadingSlots(false);
     }
@@ -92,15 +92,15 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={['#1e0533', '#4a0e8f']} style={styles.header}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Elegí tu turno</Text>
         <Text style={styles.subtitle}>{service.name} · {service.durationMin} min</Text>
-      </LinearGradient>
+      </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 + BOTTOM_INSET }}>
 
         {/* Calendario */}
         <View style={styles.calCard}>
@@ -172,9 +172,11 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
 
             {loadingSlots ? (
               <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
+            ) : slots.length === 0 ? (
+              <Text style={styles.noSlots}>No hay turnos disponibles para este día</Text>
             ) : (
               <View style={styles.slotsGrid}>
-                {slots.map((slot) => (
+                {slots.map((slot, idx) => (
                   <TouchableOpacity
                     key={slot.time}
                     onPress={() => slot.available && setSelectedTime(slot.time)}
@@ -183,6 +185,7 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
                       styles.slot,
                       !slot.available && styles.slotBusy,
                       selectedTime === slot.time && styles.slotSelected,
+                      { marginRight: (idx + 1) % 3 === 0 ? 0 : spacing.sm },
                     ]}
                     activeOpacity={0.75}
                   >
@@ -207,13 +210,12 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
           disabled={!selectedDate || !selectedTime}
           activeOpacity={0.85}
         >
-          <LinearGradient
-            colors={selectedDate && selectedTime ? ['#7c3aed', '#a855f7'] : ['#4b5563', '#4b5563']}
-            start={[0, 0]} end={[1, 0]}
-            style={styles.footerBtn}
-          >
+          <View style={[
+            styles.footerBtn,
+            (!selectedDate || !selectedTime) && styles.footerBtnDisabled,
+          ]}>
             <Text style={styles.footerBtnText}>Confirmar turno →</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -222,7 +224,10 @@ export function SelectDateTimeScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f7ff' },
-  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl },
+  header: {
+    paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl,
+    backgroundColor: '#4a0e8f',
+  },
   back: { marginBottom: spacing.md },
   backArrow: { fontSize: 28, color: '#fff', lineHeight: 28 },
   title: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
@@ -266,11 +271,14 @@ const styles = StyleSheet.create({
 
   slotsSection: { paddingHorizontal: spacing.xl },
   slotsTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a2e', marginBottom: spacing.md },
+  noSlots: { fontSize: 13, color: '#9ca3af', textAlign: 'center', marginTop: spacing.lg },
   slotsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   slot: {
-    width: '30%', paddingVertical: 10, borderRadius: 10,
+    width: SLOT_WIDTH,
+    paddingVertical: 10, borderRadius: 10,
     borderWidth: 2, borderColor: '#e8e6f0',
     backgroundColor: colors.white, alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   slotBusy: { backgroundColor: '#f3f4f6', borderColor: '#f3f4f6' },
   slotSelected: {
@@ -284,10 +292,16 @@ const styles = StyleSheet.create({
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl + BOTTOM_INSET,
     backgroundColor: 'rgba(248,247,255,0.97)',
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
-  footerBtn: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  footerBtn: {
+    borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center',
+    backgroundColor: colors.primary,
+  },
+  footerBtnDisabled: { backgroundColor: '#4b5563' },
   footerBtnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
 });

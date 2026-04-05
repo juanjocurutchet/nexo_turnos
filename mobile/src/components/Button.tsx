@@ -1,6 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, View } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 
 interface Props {
@@ -32,18 +31,13 @@ export function Button({ label, onPress, loading, disabled, variant = 'primary',
       activeOpacity={0.85}
       style={style}
     >
-      <LinearGradient
-        colors={disabled ? ['#4b5563', '#4b5563'] : ['#7c3aed', '#a855f7']}
-        start={[0, 0]}
-        end={[1, 0]}
-        style={styles.primary}
-      >
+      <View style={[styles.primary, disabled && styles.primaryDisabled]}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryText}>{label}</Text>
         )}
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -54,6 +48,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primary,
+  },
+  primaryDisabled: {
+    backgroundColor: '#4b5563',
   },
   primaryText: {
     color: colors.white,

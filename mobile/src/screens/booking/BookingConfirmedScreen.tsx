@@ -2,16 +2,12 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Linking,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../types';
+import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { useBookingStore } from '../../store/bookingStore';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
+import { DAYS_SHORT, MONTHS_SHORT as MONTHS } from '../../utils/dates';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'BookingConfirmed'>;
-
-const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+type Props = { navigation: AppNavigation; route: AppRoute<'BookingConfirmed'> };
 
 export function BookingConfirmedScreen({ navigation, route }: Props) {
   const { booking } = route.params;
@@ -39,16 +35,13 @@ export function BookingConfirmedScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient
-        colors={['#1e0533', '#4a0e8f']}
-        style={styles.hero}
-      >
+      <View style={styles.hero}>
         <View style={styles.checkCircle}>
           <Text style={{ fontSize: 40 }}>✓</Text>
         </View>
         <Text style={styles.heroTitle}>¡Turno reservado!</Text>
         <Text style={styles.heroSub}>Te esperamos en {booking.tenant.name}</Text>
-      </LinearGradient>
+      </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* Detalle */}
@@ -113,7 +106,7 @@ export function BookingConfirmedScreen({ navigation, route }: Props) {
         {/* WhatsApp notice */}
         <View style={styles.waBanner}>
           <Text style={styles.waBannerText}>
-            📩 Te enviaremos un recordatorio por WhatsApp 24 hs antes
+            📩 Te enviaremos recordatorios por WhatsApp 48 hs y 2 hs antes
           </Text>
         </View>
 
@@ -123,14 +116,8 @@ export function BookingConfirmedScreen({ navigation, route }: Props) {
             <Text style={styles.btnSecondaryText}>Reservar otro turno</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleWhatsApp} activeOpacity={0.85}>
-            <LinearGradient
-              colors={['#25d366', '#128c7e']}
-              start={[0, 0]} end={[1, 0]}
-              style={styles.btnWa}
-            >
-              <Text style={styles.btnWaText}>📲 Compartir por WhatsApp</Text>
-            </LinearGradient>
+          <TouchableOpacity onPress={handleWhatsApp} activeOpacity={0.85} style={styles.btnWa}>
+            <Text style={styles.btnWaText}>📲 Compartir por WhatsApp</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -140,7 +127,7 @@ export function BookingConfirmedScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f7ff' },
-  hero: { paddingTop: 70, paddingBottom: 40, alignItems: 'center', paddingHorizontal: spacing.xl },
+  hero: { paddingTop: 70, paddingBottom: 40, alignItems: 'center', paddingHorizontal: spacing.xl, backgroundColor: '#4a0e8f' },
   checkCircle: {
     width: 80, height: 80, borderRadius: 40,
     backgroundColor: 'rgba(74,222,128,0.25)',
@@ -151,7 +138,7 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 26, fontWeight: '700', color: '#fff', marginBottom: 6 },
   heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.65)' },
 
-  body: { padding: spacing.xl },
+  body: { padding: spacing.xl, paddingBottom: spacing.xl + BOTTOM_INSET },
 
   detailCard: {
     backgroundColor: colors.white, borderRadius: radius.xl,
@@ -189,9 +176,9 @@ const styles = StyleSheet.create({
   btnSecondary: {
     borderRadius: radius.lg, paddingVertical: spacing.lg,
     alignItems: 'center', borderWidth: 2, borderColor: '#e8e6f0',
-    backgroundColor: colors.white,
+    backgroundColor: colors.white, marginBottom: spacing.md,
   },
   btnSecondaryText: { fontSize: 14, fontWeight: '600', color: '#6b7280' },
-  btnWa: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  btnWa: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center', backgroundColor: '#25d366' },
   btnWaText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 });

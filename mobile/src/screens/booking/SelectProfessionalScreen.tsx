@@ -3,13 +3,12 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, StatusBar,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, Professional } from '../../types';
+import { Professional } from '../../types';
+import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { useBookingStore } from '../../store/bookingStore';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SelectProfessional'>;
+type Props = { navigation: AppNavigation; route: AppRoute<'SelectProfessional'> };
 
 export function SelectProfessionalScreen({ navigation, route }: Props) {
   const { tenant, service } = route.params;
@@ -38,16 +37,13 @@ export function SelectProfessionalScreen({ navigation, route }: Props) {
       <StatusBar barStyle="light-content" />
 
       {/* Header */}
-      <LinearGradient
-        colors={['#1e0533', '#4a0e8f']}
-        style={styles.header}
-      >
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Elegí tu profesional</Text>
         <Text style={styles.subtitle}>{service.name} · {service.durationMin} min</Text>
-      </LinearGradient>
+      </View>
 
       <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 120 }}>
         <Text style={styles.sectionLabel}>ESPECIALISTAS DISPONIBLES</Text>
@@ -93,13 +89,9 @@ export function SelectProfessionalScreen({ navigation, route }: Props) {
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={handleContinue} activeOpacity={0.85}>
-          <LinearGradient
-            colors={['#7c3aed', '#a855f7']}
-            start={[0, 0]} end={[1, 0]}
-            style={styles.footerBtn}
-          >
+          <View style={styles.footerBtn}>
             <Text style={styles.footerBtnText}>Elegir fecha y horario →</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -108,7 +100,10 @@ export function SelectProfessionalScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f7ff' },
-  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl },
+  header: {
+    paddingTop: 60, paddingBottom: 24, paddingHorizontal: spacing.xl,
+    backgroundColor: '#4a0e8f',
+  },
   back: { marginBottom: spacing.md },
   backArrow: { fontSize: 28, color: '#fff', lineHeight: 28 },
   title: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
@@ -152,10 +147,15 @@ const styles = StyleSheet.create({
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl + BOTTOM_INSET,
     backgroundColor: 'rgba(248,247,255,0.97)',
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
-  footerBtn: { borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center' },
+  footerBtn: {
+    borderRadius: radius.lg, paddingVertical: spacing.lg, alignItems: 'center',
+    backgroundColor: colors.primary,
+  },
   footerBtnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
 });

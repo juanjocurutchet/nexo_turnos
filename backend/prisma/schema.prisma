@@ -195,7 +195,8 @@ model Booking {
   totalPrice       Decimal       @db.Decimal(10, 2)
   depositPaid      Decimal?      @db.Decimal(10, 2)
   depositPaymentId String?
-  reminderSentAt   DateTime?
+  reminder48hSentAt DateTime?  // recordatorio 48 hs antes
+  reminder2hSentAt  DateTime?  // recordatorio 2 hs antes
   confirmedAt      DateTime?
   cancelledAt      DateTime?
   cancelReason     String?
