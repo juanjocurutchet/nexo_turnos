@@ -46,7 +46,7 @@ export class TenantsService {
     return tenant;
   }
 
-  async update(id: string, data: { name?: string; city?: string; phone?: string; address?: string; instagram?: string }) {
+  async update(id: string, data: { name?: string; city?: string; phone?: string; address?: string; instagram?: string; facebook?: string }) {
     const tenant = await this.prisma.tenant.findUnique({ where: { id } });
     if (!tenant) throw new NotFoundException('Negocio no encontrado');
     return this.prisma.tenant.update({ where: { id }, data });

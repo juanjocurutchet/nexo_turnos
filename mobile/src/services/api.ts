@@ -87,10 +87,10 @@ export const adminApi = {
 
   // Configuración del negocio
   getTenant: (tenantId: string) =>
-    api.get(`/tenants/${tenantId}`).then((r) => r.data),
+    api.get(`/tenants/${tenantId}/settings`).then((r) => r.data),
 
   updateTenant: (tenantId: string, data: any) =>
-    api.patch(`/tenants/${tenantId}`, data).then((r) => r.data),
+    api.patch(`/tenants/${tenantId}/settings`, data).then((r) => r.data),
 
   // Feriados
   getHolidays: (tenantId: string) =>

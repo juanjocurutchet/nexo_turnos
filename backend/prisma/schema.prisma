@@ -22,6 +22,7 @@ model Tenant {
   logoUrl     String?
   coverUrl    String?
   instagram   String?
+  facebook    String?
   timezone    String   @default("America/Argentina/Buenos_Aires")
   currency    String   @default("ARS")
   isActive    Boolean  @default(true)

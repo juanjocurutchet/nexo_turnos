@@ -200,29 +200,31 @@ export function AdminScheduleScreen({ navigation, route }: Props) {
               {day.isOpen && (
                 day.openTime2 !== null ? (
                   <View style={styles.shift2Row}>
-                    <Text style={styles.shift2Label}>Tarde:</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.openTime2 ?? ''}
-                      onChangeText={(v) => setDay(idx, 'openTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
-                    <Text style={styles.timeSep}>–</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.closeTime2 ?? ''}
-                      onChangeText={(v) => setDay(idx, 'closeTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
+                    <Text style={styles.shift2Label}>Tarde</Text>
+                    <View style={styles.shiftRow}>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={day.openTime2 ?? ''}
+                        onChangeText={(v) => setDay(idx, 'openTime2', v)}
+                        keyboardType="numbers-and-punctuation"
+                        maxLength={5}
+                      />
+                      <Text style={styles.timeSep}>–</Text>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={day.closeTime2 ?? ''}
+                        onChangeText={(v) => setDay(idx, 'closeTime2', v)}
+                        keyboardType="numbers-and-punctuation"
+                        maxLength={5}
+                      />
+                    </View>
                     <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
                       <Text style={styles.removeShift2Text}>✕</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
-                    <Text style={styles.addShift2Text}>+ Agregar turno tarde</Text>
+                    <Text style={styles.addShift2Text}>+ turno tarde</Text>
                   </TouchableOpacity>
                 )
               )}
@@ -323,12 +325,12 @@ const styles = StyleSheet.create({
   timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: 6 },
   closedText: { fontSize: 13, color: '#9ca3af' },
 
-  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6, paddingLeft: 90 },
-  shift2Label: { fontSize: 11, color: '#9ca3af', marginRight: 8, width: 38 },
-  removeShift2: { marginLeft: 8, padding: 4 },
-  removeShift2Text: { fontSize: 12, color: '#dc2626', fontWeight: '700' },
+  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6, paddingLeft: 4 },
+  shift2Label: { fontSize: 11, color: '#9ca3af', width: 44, fontWeight: '600' },
+  removeShift2: { marginLeft: spacing.sm, padding: 4 },
+  removeShift2Text: { fontSize: 13, color: '#dc2626', fontWeight: '700' },
 
-  addShift2Btn: { paddingLeft: 90, paddingTop: 4, paddingBottom: 2 },
+  addShift2Btn: { paddingLeft: 4, paddingTop: 6, paddingBottom: 2 },
   addShift2Text: { fontSize: 12, color: colors.primary, fontWeight: '600' },
 
   saveBtn: {

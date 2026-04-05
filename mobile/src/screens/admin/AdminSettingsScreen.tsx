@@ -18,6 +18,7 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -27,6 +28,7 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
       setPhone(data.phone ?? '');
       setAddress(data.address ?? '');
       setInstagram(data.instagram ?? '');
+      setFacebook(data.facebook ?? '');
     } catch {
       Alert.alert('Error', 'No se pudieron cargar los datos');
     } finally {
@@ -49,6 +51,7 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
         phone: phone.trim() || undefined,
         address: address.trim() || undefined,
         instagram: instagram.trim() || undefined,
+        facebook: facebook.trim() || undefined,
       });
       Alert.alert('Guardado', 'Configuración actualizada');
     } catch {
@@ -118,7 +121,15 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
             <Text style={styles.inputLabel}>Instagram (sin @)</Text>
             <TextInput
               style={styles.input} value={instagram} onChangeText={setInstagram}
-              placeholder="studiolumiere.ok" placeholderTextColor="#d1d5db"
+              placeholder="mgestetica.nails" placeholderTextColor="#d1d5db"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.inputWrap}>
+            <Text style={styles.inputLabel}>Facebook (nombre de página)</Text>
+            <TextInput
+              style={styles.input} value={facebook} onChangeText={setFacebook}
+              placeholder="MG Estética Integral" placeholderTextColor="#d1d5db"
               autoCapitalize="none"
             />
           </View>

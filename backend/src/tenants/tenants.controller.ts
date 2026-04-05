@@ -16,12 +16,12 @@ export class TenantsController {
     return this.tenantsService.findBySlug(slug);
   }
 
-  @Get(':id')
+  @Get(':id/settings')
   findById(@Param('id') id: string) {
     return this.tenantsService.findById(id);
   }
 
-  @Patch(':id')
+  @Patch(':id/settings')
   update(@Param('id') id: string, @Body() body: any) {
     return this.tenantsService.update(id, body);
   }
