@@ -13,6 +13,7 @@ import { AdminProfessionalDetailScreen } from '../screens/admin/AdminProfessiona
 import { AdminServicesScreen } from '../screens/admin/AdminServicesScreen';
 import { AdminServiceDetailScreen } from '../screens/admin/AdminServiceDetailScreen';
 import { AdminScheduleScreen } from '../screens/admin/AdminScheduleScreen';
+import { AdminSettingsScreen } from '../screens/admin/AdminSettingsScreen';
 
 // ── Tipos de navegación simplificados ────────────────────────────────────────
 
@@ -139,6 +140,13 @@ export function AppNavigator() {
           <AdminScheduleScreen
             navigation={navigation}
             route={{ params: current.params as RootStackParamList['AdminSchedule'] }}
+          />
+        );
+      case 'AdminSettings':
+        return (
+          <AdminSettingsScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminSettings'] }}
           />
         );
       default:

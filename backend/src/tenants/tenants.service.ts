@@ -46,6 +46,12 @@ export class TenantsService {
     return tenant;
   }
 
+  async update(id: string, data: { name?: string; city?: string; phone?: string; address?: string; instagram?: string }) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id } });
+    if (!tenant) throw new NotFoundException('Negocio no encontrado');
+    return this.prisma.tenant.update({ where: { id }, data });
+  }
+
   // ── Disponibilidad semanal ────────────────────────────────────────────────
 
   async getAvailability(tenantId: string) {
@@ -57,13 +63,26 @@ export class TenantsService {
 
   async updateAvailability(
     tenantId: string,
-    days: { dayOfWeek: number; openTime: string; closeTime: string; isOpen: boolean }[],
+    days: {
+      dayOfWeek: number;
+      openTime: string;
+      closeTime: string;
+      openTime2?: string | null;
+      closeTime2?: string | null;
+      isOpen: boolean;
+    }[],
   ) {
     await Promise.all(
       days.map((day) =>
         this.prisma.weeklyAvailability.upsert({
           where: { tenantId_dayOfWeek: { tenantId, dayOfWeek: day.dayOfWeek } },
-          update: { openTime: day.openTime, closeTime: day.closeTime, isOpen: day.isOpen },
+          update: {
+            openTime: day.openTime,
+            closeTime: day.closeTime,
+            openTime2: day.openTime2 ?? null,
+            closeTime2: day.closeTime2 ?? null,
+            isOpen: day.isOpen,
+          },
           create: { tenantId, ...day },
         }),
       ),

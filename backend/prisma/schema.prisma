@@ -21,6 +21,7 @@ model Tenant {
   city        String?
   logoUrl     String?
   coverUrl    String?
+  instagram   String?
   timezone    String   @default("America/Argentina/Buenos_Aires")
   currency    String   @default("ARS")
   isActive    Boolean  @default(true)
@@ -260,12 +261,14 @@ enum WaitlistStatus {
 // DISPONIBILIDAD
 // ─────────────────────────────────────────
 model WeeklyAvailability {
-  id        String  @id @default(cuid())
-  tenantId  String
-  dayOfWeek Int     // 0=Dom … 6=Sab
-  openTime  String  // "09:00"
-  closeTime String  // "19:00"
-  isOpen    Boolean @default(true)
+  id         String  @id @default(cuid())
+  tenantId   String
+  dayOfWeek  Int     // 0=Dom … 6=Sab
+  openTime   String  // "09:00"
+  closeTime  String  // "19:00"
+  openTime2  String? // Segundo turno opcional, ej: "15:00"
+  closeTime2 String? // "20:30"
+  isOpen     Boolean @default(true)
 
   tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -279,6 +282,8 @@ model ProfessionalAvailability {
   dayOfWeek      Int
   startTime      String
   endTime        String
+  startTime2     String? // Segundo turno opcional, ej: "15:00"
+  endTime2       String? // "20:30"
   isAvailable    Boolean @default(true)
 
   professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)

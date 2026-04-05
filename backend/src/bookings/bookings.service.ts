@@ -38,15 +38,13 @@ export class BookingsService {
       where: { professionalId_dayOfWeek: { professionalId, dayOfWeek } },
     });
 
-    const startHour = profAvailability?.isAvailable
-      ? profAvailability.startTime
-      : tenantAvailability.openTime;
-    const endHour = profAvailability?.isAvailable
-      ? profAvailability.endTime
-      : tenantAvailability.closeTime;
+    const useProf = profAvailability?.isAvailable;
+    const shift1Start = useProf ? profAvailability!.startTime : tenantAvailability.openTime;
+    const shift1End   = useProf ? profAvailability!.endTime   : tenantAvailability.closeTime;
+    const shift2Start = useProf ? profAvailability!.startTime2 : tenantAvailability.openTime2;
+    const shift2End   = useProf ? profAvailability!.endTime2   : tenantAvailability.closeTime2;
 
     // Obtener turnos ya reservados en esa fecha para ese profesional
-    // Usamos UTC puro para evitar bugs de timezone
     const startOfDay = new Date(`${date}T00:00:00.000Z`);
     const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
@@ -59,14 +57,13 @@ export class BookingsService {
       },
     });
 
-    // Generar slots cada 30 minutos dentro del horario disponible
-    const slots = this.generateSlots(
-      date,
-      startHour,
-      endHour,
-      service.durationMin,
-      existingBookings,
-    );
+    // Generar slots para turno 1 (y turno 2 si existe)
+    const slots = [
+      ...this.generateSlots(date, shift1Start, shift1End, service.durationMin, existingBookings),
+      ...(shift2Start && shift2End
+        ? this.generateSlots(date, shift2Start, shift2End, service.durationMin, existingBookings)
+        : []),
+    ];
 
     return slots;
   }

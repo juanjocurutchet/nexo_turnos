@@ -85,6 +85,13 @@ export const adminApi = {
   updateAvailability: (tenantId: string, availability: any[]) =>
     api.patch(`/tenants/${tenantId}/availability`, { availability }).then((r) => r.data),
 
+  // Configuración del negocio
+  getTenant: (tenantId: string) =>
+    api.get(`/tenants/${tenantId}`).then((r) => r.data),
+
+  updateTenant: (tenantId: string, data: any) =>
+    api.patch(`/tenants/${tenantId}`, data).then((r) => r.data),
+
   // Feriados
   getHolidays: (tenantId: string) =>
     api.get(`/tenants/${tenantId}/holidays`).then((r) => r.data),

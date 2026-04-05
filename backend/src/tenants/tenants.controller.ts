@@ -16,6 +16,16 @@ export class TenantsController {
     return this.tenantsService.findBySlug(slug);
   }
 
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.tenantsService.findById(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() body: any) {
+    return this.tenantsService.update(id, body);
+  }
+
   @Get(':id/availability')
   getAvailability(@Param('id') id: string) {
     return this.tenantsService.getAvailability(id);

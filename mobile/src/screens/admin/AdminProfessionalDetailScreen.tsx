@@ -11,10 +11,21 @@ type Props = { navigation: AppNavigation; route: AppRoute<'AdminProfessionalDeta
 
 const DAYS_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-const DEFAULT_AVAILABILITY = DAYS_LABELS.map((_, i) => ({
+type DayAvail = {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  startTime2: string | null;
+  endTime2: string | null;
+  isAvailable: boolean;
+};
+
+const DEFAULT_AVAILABILITY: DayAvail[] = DAYS_LABELS.map((_, i) => ({
   dayOfWeek: i,
   startTime: '09:00',
   endTime: '21:00',
+  startTime2: null,
+  endTime2: null,
   isAvailable: i !== 0,
 }));
 
@@ -27,7 +38,7 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
-  const [availability, setAvailability] = useState(DEFAULT_AVAILABILITY);
+  const [availability, setAvailability] = useState<DayAvail[]>(DEFAULT_AVAILABILITY);
 
   const load = useCallback(async () => {
     if (isNew) return;
@@ -40,7 +51,17 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
         setAvailability(
           DAYS_LABELS.map((_, i) => {
             const found = data.availability.find((a: any) => a.dayOfWeek === i);
-            return found ?? DEFAULT_AVAILABILITY[i];
+            if (found) {
+              return {
+                dayOfWeek: i,
+                startTime: found.startTime,
+                endTime: found.endTime,
+                startTime2: found.startTime2 ?? null,
+                endTime2: found.endTime2 ?? null,
+                isAvailable: found.isAvailable,
+              };
+            }
+            return DEFAULT_AVAILABILITY[i];
           }),
         );
       }
@@ -53,10 +74,23 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
-  const setAvailDay = (idx: number, field: string, value: any) => {
+  const setAvailDay = (idx: number, field: keyof DayAvail, value: any) => {
     setAvailability((prev) =>
       prev.map((d, i) => (i === idx ? { ...d, [field]: value } : d)),
     );
+  };
+
+  const toggleShift2 = (idx: number) => {
+    const day = availability[idx];
+    if (day.startTime2 !== null) {
+      setAvailability((prev) =>
+        prev.map((d, i) => i === idx ? { ...d, startTime2: null, endTime2: null } : d)
+      );
+    } else {
+      setAvailability((prev) =>
+        prev.map((d, i) => i === idx ? { ...d, startTime2: '15:00', endTime2: '20:30' } : d)
+      );
+    }
   };
 
   const handleSave = async () => {
@@ -67,10 +101,19 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
     setSaving(true);
     try {
       if (isNew) {
-        const prof = await adminApi.createProfessional({ tenantId, firstName: firstName.trim(), lastName: lastName.trim(), bio: bio.trim() });
+        const prof = await adminApi.createProfessional({
+          tenantId,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          bio: bio.trim(),
+        });
         await adminApi.updateProfessionalAvailability(prof.id, tenantId, availability);
       } else {
-        await adminApi.updateProfessional(professionalId!, tenantId, { firstName: firstName.trim(), lastName: lastName.trim(), bio: bio.trim() });
+        await adminApi.updateProfessional(professionalId!, tenantId, {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          bio: bio.trim(),
+        });
         await adminApi.updateProfessionalAvailability(professionalId!, tenantId, availability);
       }
       navigation.goBack();
@@ -111,11 +154,17 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
           <View style={styles.row}>
             <View style={[styles.inputWrap, { flex: 1, marginRight: spacing.sm }]}>
               <Text style={styles.inputLabel}>Nombre *</Text>
-              <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholder="Valeria" placeholderTextColor="#d1d5db" />
+              <TextInput
+                style={styles.input} value={firstName} onChangeText={setFirstName}
+                placeholder="Valeria" placeholderTextColor="#d1d5db"
+              />
             </View>
             <View style={[styles.inputWrap, { flex: 1 }]}>
               <Text style={styles.inputLabel}>Apellido *</Text>
-              <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholder="García" placeholderTextColor="#d1d5db" />
+              <TextInput
+                style={styles.input} value={lastName} onChangeText={setLastName}
+                placeholder="García" placeholderTextColor="#d1d5db"
+              />
             </View>
           </View>
           <View style={styles.inputWrap}>
@@ -132,38 +181,73 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
         <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>DISPONIBILIDAD SEMANAL</Text>
         <View style={styles.card}>
           {availability.map((day, idx) => (
-            <View key={day.dayOfWeek} style={[styles.dayRow, idx < 6 && styles.dayRowBorder]}>
-              <View style={styles.dayToggle}>
-                <Switch
-                  value={day.isAvailable}
-                  onValueChange={(v) => setAvailDay(idx, 'isAvailable', v)}
-                  trackColor={{ false: '#e5e7eb', true: colors.primaryLight }}
-                  thumbColor={day.isAvailable ? colors.primary : '#9ca3af'}
-                />
-                <Text style={[styles.dayName, !day.isAvailable && styles.dayNameOff]}>
-                  {DAYS_LABELS[day.dayOfWeek]}
-                </Text>
-              </View>
-              {day.isAvailable ? (
-                <View style={styles.timeRange}>
-                  <TextInput
-                    style={styles.timeInput}
-                    value={day.startTime}
-                    onChangeText={(v) => setAvailDay(idx, 'startTime', v)}
-                    keyboardType="numbers-and-punctuation"
-                    maxLength={5}
+            <View key={day.dayOfWeek} style={[styles.dayBlock, idx < 6 && styles.dayBlockBorder]}>
+              {/* Fila principal: toggle + nombre + turno 1 */}
+              <View style={styles.dayRow}>
+                <View style={styles.dayLeft}>
+                  <Switch
+                    value={day.isAvailable}
+                    onValueChange={(v) => setAvailDay(idx, 'isAvailable', v)}
+                    trackColor={{ false: '#e5e7eb', true: colors.primaryLight }}
+                    thumbColor={day.isAvailable ? colors.primary : '#9ca3af'}
                   />
-                  <Text style={styles.timeSep}>–</Text>
-                  <TextInput
-                    style={styles.timeInput}
-                    value={day.endTime}
-                    onChangeText={(v) => setAvailDay(idx, 'endTime', v)}
-                    keyboardType="numbers-and-punctuation"
-                    maxLength={5}
-                  />
+                  <Text style={[styles.dayName, !day.isAvailable && styles.dayNameOff]}>
+                    {DAYS_LABELS[day.dayOfWeek]}
+                  </Text>
                 </View>
-              ) : (
-                <Text style={styles.closedText}>Libre</Text>
+
+                {day.isAvailable ? (
+                  <View style={styles.shiftRow}>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.startTime}
+                      onChangeText={(v) => setAvailDay(idx, 'startTime', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                    <Text style={styles.timeSep}>–</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.endTime}
+                      onChangeText={(v) => setAvailDay(idx, 'endTime', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                  </View>
+                ) : (
+                  <Text style={styles.closedText}>Libre</Text>
+                )}
+              </View>
+
+              {/* Segundo turno */}
+              {day.isAvailable && (
+                day.startTime2 !== null ? (
+                  <View style={styles.shift2Row}>
+                    <Text style={styles.shift2Label}>Tarde:</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.startTime2 ?? ''}
+                      onChangeText={(v) => setAvailDay(idx, 'startTime2', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                    <Text style={styles.timeSep}>–</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.endTime2 ?? ''}
+                      onChangeText={(v) => setAvailDay(idx, 'endTime2', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                    <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
+                      <Text style={styles.removeShift2Text}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
+                    <Text style={styles.addShift2Text}>+ Agregar turno tarde</Text>
+                  </TouchableOpacity>
+                )
               )}
             </View>
           ))}
@@ -212,21 +296,31 @@ const styles = StyleSheet.create({
     fontSize: 14, color: '#1a1a2e', borderWidth: 1, borderColor: '#e5e7eb',
   },
 
-  dayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
-  dayRowBorder: { borderBottomWidth: 1, borderBottomColor: '#f0f0f5' },
-  dayToggle: { flexDirection: 'row', alignItems: 'center', width: 80 },
+  dayBlock: { paddingVertical: 10 },
+  dayBlockBorder: { borderBottomWidth: 1, borderBottomColor: '#f0f0f5' },
+  dayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dayLeft: { flexDirection: 'row', alignItems: 'center', width: 90 },
   dayName: { fontSize: 14, fontWeight: '600', color: '#1a1a2e', marginLeft: spacing.sm },
   dayNameOff: { color: '#9ca3af' },
-  timeRange: { flexDirection: 'row', alignItems: 'center' },
+
+  shiftRow: { flexDirection: 'row', alignItems: 'center' },
   timeInput: {
     backgroundColor: '#f4f3ff', borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm, paddingVertical: 6,
+    paddingHorizontal: 6, paddingVertical: 6,
     fontSize: 14, fontWeight: '600', color: colors.primary,
-    textAlign: 'center', width: 56,
+    textAlign: 'center', width: 62,
     borderWidth: 1, borderColor: '#e0ddff',
   },
-  timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: spacing.sm },
+  timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: 6 },
   closedText: { fontSize: 13, color: '#9ca3af' },
+
+  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6, paddingLeft: 90 },
+  shift2Label: { fontSize: 11, color: '#9ca3af', marginRight: 8, width: 38 },
+  removeShift2: { marginLeft: 8, padding: 4 },
+  removeShift2Text: { fontSize: 12, color: '#dc2626', fontWeight: '700' },
+
+  addShift2Btn: { paddingLeft: 90, paddingTop: 4, paddingBottom: 2 },
+  addShift2Text: { fontSize: 12, color: colors.primary, fontWeight: '600' },
 
   saveBtn: {
     backgroundColor: colors.primary, borderRadius: radius.lg,

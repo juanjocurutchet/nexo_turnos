@@ -7,9 +7,11 @@ import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
 import { adminApi } from '../../services/api';
 import { BookingAdmin } from '../../types';
 import { colors, spacing, radius, BOTTOM_INSET } from '../../theme';
-import { DAYS_SHORT, MONTHS_LONG } from '../../utils/dates';
+import { MONTHS_LONG } from '../../utils/dates';
 
 type Props = { navigation: AppNavigation; route: AppRoute<'AdminDashboard'> };
+
+const DAYS_MIN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendiente', CONFIRMED: 'Confirmado',
@@ -28,11 +30,34 @@ function toDateString(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function addDays(dateStr: string, n: number) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return toDateString(d);
+}
+
+function getWeekDates(dateStr: string) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  const dow = d.getUTCDay();
+  const monday = new Date(d);
+  monday.setUTCDate(d.getUTCDate() - dow); // semana arranca el domingo
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(monday);
+    day.setUTCDate(monday.getUTCDate() + i);
+    return toDateString(day);
+  });
+}
+
 export function AdminDashboardScreen({ navigation, route }: Props) {
   const { tenantId } = route.params;
-  const [date, setDate] = useState(toDateString(new Date()));
+  const [selectedDate, setSelectedDate] = useState(toDateString(new Date()));
+  const [weekOffset, setWeekOffset] = useState(0);
   const [bookings, setBookings] = useState<BookingAdmin[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // La semana mostrada se calcula a partir del lunes de la semana actual + offset
+  const baseWeekDate = addDays(toDateString(new Date()), weekOffset * 7);
+  const weekDates = getWeekDates(baseWeekDate);
 
   const load = useCallback(async (d: string) => {
     setLoading(true);
@@ -46,12 +71,10 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
     }
   }, [tenantId]);
 
-  useEffect(() => { load(date); }, [date, load]);
+  useEffect(() => { load(selectedDate); }, [selectedDate, load]);
 
-  const changeDay = (delta: number) => {
-    const d = new Date(date + 'T12:00:00Z');
-    d.setUTCDate(d.getUTCDate() + delta);
-    setDate(toDateString(d));
+  const handleSelectDay = (date: string) => {
+    setSelectedDate(date);
   };
 
   const handleStatus = (booking: BookingAdmin, status: string) => {
@@ -64,15 +87,15 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
           text: 'Confirmar',
           onPress: async () => {
             await adminApi.updateBookingStatus(booking.id, tenantId, status);
-            load(date);
+            load(selectedDate);
           },
         },
       ],
     );
   };
 
-  const d = new Date(date + 'T12:00:00Z');
-  const dateLabel = `${DAYS_SHORT[d.getUTCDay()]} ${d.getUTCDate()} de ${MONTHS_LONG[d.getUTCMonth()]}`;
+  const selD = new Date(selectedDate + 'T12:00:00Z');
+  const monthYear = `${MONTHS_LONG[selD.getUTCMonth()]} ${selD.getUTCFullYear()}`;
 
   return (
     <View style={styles.container}>
@@ -84,14 +107,42 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
         </TouchableOpacity>
         <Text style={styles.title}>Agenda</Text>
 
-        <View style={styles.dateNav}>
-          <TouchableOpacity style={styles.navBtn} onPress={() => changeDay(-1)}>
+        {/* Navegador de semana */}
+        <View style={styles.weekNav}>
+          <TouchableOpacity style={styles.navBtn} onPress={() => setWeekOffset(w => w - 1)}>
             <Text style={styles.navBtnText}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.dateLabel}>{dateLabel}</Text>
-          <TouchableOpacity style={styles.navBtn} onPress={() => changeDay(1)}>
+          <Text style={styles.monthLabel}>{monthYear}</Text>
+          <TouchableOpacity style={styles.navBtn} onPress={() => setWeekOffset(w => w + 1)}>
             <Text style={styles.navBtnText}>›</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Tira de días */}
+        <View style={styles.weekStrip}>
+          {weekDates.map((date, i) => {
+            const d = new Date(date + 'T12:00:00Z');
+            const isSelected = date === selectedDate;
+            const isToday = date === toDateString(new Date());
+            return (
+              <TouchableOpacity
+                key={date}
+                style={[styles.dayPill, isSelected && styles.dayPillSelected]}
+                onPress={() => handleSelectDay(date)}
+              >
+                <Text style={[styles.dayMin, isSelected && styles.dayMinSelected]}>
+                  {DAYS_MIN[i]}
+                </Text>
+                <Text style={[
+                  styles.dayNum,
+                  isSelected && styles.dayNumSelected,
+                  isToday && !isSelected && styles.dayNumToday,
+                ]}>
+                  {d.getUTCDate()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -126,7 +177,7 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
 
                 <View style={styles.serviceRow}>
                   <Text style={styles.serviceName}>{b.service.name}</Text>
-                  <Text style={styles.serviceProf}>· {b.professional.firstName}</Text>
+                  <Text style={styles.serviceProf}> · {b.professional.firstName}</Text>
                 </View>
 
                 {b.status === 'PENDING' && (
@@ -172,19 +223,31 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f7ff' },
-  header: { paddingTop: 60, paddingBottom: 16, paddingHorizontal: spacing.xl, backgroundColor: '#4a0e8f' },
+  header: { paddingTop: 60, paddingBottom: 12, paddingHorizontal: spacing.xl, backgroundColor: '#4a0e8f' },
   back: { marginBottom: spacing.sm },
   backArrow: { fontSize: 28, color: '#fff', lineHeight: 28 },
   title: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: spacing.md },
 
-  dateNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  weekNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   navBtn: {
     width: 32, height: 32, borderRadius: radius.sm,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
   navBtnText: { fontSize: 20, color: '#fff', lineHeight: 24 },
-  dateLabel: { fontSize: 15, fontWeight: '600', color: '#fff' },
+  monthLabel: { fontSize: 14, fontWeight: '600', color: '#fff' },
+
+  weekStrip: { flexDirection: 'row', justifyContent: 'space-between', paddingBottom: spacing.sm },
+  dayPill: {
+    flex: 1, alignItems: 'center', paddingVertical: 6,
+    borderRadius: radius.md, marginHorizontal: 2,
+  },
+  dayPillSelected: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  dayMin: { fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: '600', marginBottom: 4 },
+  dayMinSelected: { color: '#fff' },
+  dayNum: { fontSize: 16, fontWeight: '700', color: 'rgba(255,255,255,0.7)' },
+  dayNumSelected: { color: '#fff' },
+  dayNumToday: { color: '#fbbf24' },
 
   body: { padding: spacing.xl, paddingBottom: spacing.xl + BOTTOM_INSET },
 
@@ -208,7 +271,7 @@ const styles = StyleSheet.create({
 
   serviceRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
   serviceName: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  serviceProf: { fontSize: 13, color: '#9ca3af', marginLeft: 4 },
+  serviceProf: { fontSize: 13, color: '#9ca3af' },
 
   actions: { flexDirection: 'row' },
   actionBtn: {

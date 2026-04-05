@@ -95,7 +95,13 @@ export class ProfessionalsService {
       dto.availability.map((day) =>
         this.prisma.professionalAvailability.upsert({
           where: { professionalId_dayOfWeek: { professionalId: id, dayOfWeek: day.dayOfWeek } },
-          update: { startTime: day.startTime, endTime: day.endTime, isAvailable: day.isAvailable },
+          update: {
+            startTime: day.startTime,
+            endTime: day.endTime,
+            startTime2: day.startTime2 ?? null,
+            endTime2: day.endTime2 ?? null,
+            isAvailable: day.isAvailable,
+          },
           create: { professionalId: id, ...day },
         }),
       ),
