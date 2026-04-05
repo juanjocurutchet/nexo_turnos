@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, StatusBar, Image,
+  TouchableOpacity, ActivityIndicator, StatusBar, Image, Platform,
 } from 'react-native';
 import { RootStackParamList, Tenant, Service } from '../../types';
 import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
@@ -93,7 +93,10 @@ export function TenantProfileScreen({ navigation, route }: Props) {
 
           <TouchableOpacity
             style={styles.adminLink}
-            onPress={() => navigation.navigate('AdminHome', { tenantId: tenant.id, tenantName: tenant.name })}
+            onPress={() => Platform.OS === 'web'
+            ? navigation.navigate('AdminWeb', { tenantId: tenant.id, tenantName: tenant.name })
+            : navigation.navigate('AdminHome', { tenantId: tenant.id, tenantName: tenant.name })
+          }
           >
             <Text style={styles.adminLinkText}>Acceso administrador</Text>
           </TouchableOpacity>

@@ -15,6 +15,7 @@ import { AdminServiceDetailScreen } from '../screens/admin/AdminServiceDetailScr
 import { AdminScheduleScreen } from '../screens/admin/AdminScheduleScreen';
 import { AdminSettingsScreen } from '../screens/admin/AdminSettingsScreen';
 import { AdminBookingCreateScreen } from '../screens/admin/AdminBookingCreateScreen';
+import { AdminWebScreen } from '../screens/admin/AdminWebScreen';
 
 // ── Tipos de navegación simplificados ────────────────────────────────────────
 
@@ -155,6 +156,13 @@ export function AppNavigator() {
           <AdminBookingCreateScreen
             navigation={navigation}
             route={{ params: current.params as RootStackParamList['AdminBookingCreate'] }}
+          />
+        );
+      case 'AdminWeb':
+        return (
+          <AdminWebScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminWeb'] }}
           />
         );
       default:
