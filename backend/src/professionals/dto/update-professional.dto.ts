@@ -16,6 +16,8 @@ export class UpdateAvailabilityDto {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
+    startTime2?: string | null;
+    endTime2?: string | null;
     isAvailable: boolean;
   }[];
 }
