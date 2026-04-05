@@ -11,29 +11,25 @@ import { BookingStatus } from '@prisma/client';
 export class BookingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ── Obtener slots disponibles para una fecha ────────────────────────────────
   async getAvailableSlots(
     tenantId: string,
     serviceId: string,
     professionalId: string,
-    date: string, // "2026-04-11"
+    date: string,
   ) {
     const service = await this.prisma.service.findFirst({
       where: { id: serviceId, tenantId },
     });
     if (!service) throw new NotFoundException('Servicio no encontrado');
 
-    // Usar UTC para evitar que UTC-3 desplace el día de la semana
     const dateObj = new Date(`${date}T12:00:00.000Z`);
     const dayOfWeek = dateObj.getUTCDay();
 
-    // Verificar que el negocio esté abierto ese día
     const tenantAvailability = await this.prisma.weeklyAvailability.findUnique({
       where: { tenantId_dayOfWeek: { tenantId, dayOfWeek } },
     });
     if (!tenantAvailability?.isOpen) return [];
 
-    // Verificar que el profesional esté disponible ese día
     const profAvailability = await this.prisma.professionalAvailability.findUnique({
       where: { professionalId_dayOfWeek: { professionalId, dayOfWeek } },
     });
@@ -44,7 +40,6 @@ export class BookingsService {
     const shift2Start = useProf ? profAvailability!.startTime2 : tenantAvailability.openTime2;
     const shift2End   = useProf ? profAvailability!.endTime2   : tenantAvailability.closeTime2;
 
-    // Obtener turnos ya reservados en esa fecha para ese profesional
     const startOfDay = new Date(`${date}T00:00:00.000Z`);
     const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
@@ -57,18 +52,21 @@ export class BookingsService {
       },
     });
 
-    // Generar slots para turno 1 (y turno 2 si existe)
-    const slots = [
+    const allSlots = [
       ...this.generateSlots(date, shift1Start, shift1End, service.durationMin, existingBookings),
       ...(shift2Start && shift2End
         ? this.generateSlots(date, shift2Start, shift2End, service.durationMin, existingBookings)
         : []),
     ];
 
-    return slots;
+    const seen = new Set<string>();
+    return allSlots.filter(s => {
+      if (seen.has(s.time)) return false;
+      seen.add(s.time);
+      return true;
+    });
   }
 
-  // ── Crear turno ──────────────────────────────────────────────────────────────
   async create(dto: CreateBookingDto) {
     const service = await this.prisma.service.findFirst({
       where: { id: dto.serviceId, tenantId: dto.tenantId },
@@ -78,7 +76,6 @@ export class BookingsService {
     const startTime = new Date(dto.startTime);
     const endTime = new Date(startTime.getTime() + service.durationMin * 60000);
 
-    // Verificar disponibilidad (no haya colisión)
     const conflict = await this.prisma.booking.findFirst({
       where: {
         professionalId: dto.professionalId,
@@ -93,7 +90,6 @@ export class BookingsService {
     });
     if (conflict) throw new BadRequestException('Ese horario ya no está disponible');
 
-    // Crear o encontrar el cliente
     const client = await this.prisma.client.upsert({
       where: { tenantId_phone: { tenantId: dto.tenantId, phone: dto.clientPhone } },
       update: { firstName: dto.clientFirstName, lastName: dto.clientLastName, email: dto.clientEmail },
@@ -106,7 +102,7 @@ export class BookingsService {
       },
     });
 
-    const booking = await this.prisma.booking.create({
+    return this.prisma.booking.create({
       data: {
         tenantId: dto.tenantId,
         clientId: client.id,
@@ -125,11 +121,8 @@ export class BookingsService {
         tenant: { select: { name: true, phone: true, address: true } },
       },
     });
-
-    return booking;
   }
 
-  // ── Turnos del día para el dashboard ────────────────────────────────────────
   async getDayBookings(tenantId: string, date: string) {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
@@ -141,16 +134,11 @@ export class BookingsService {
         tenantId,
         startTime: { gte: startOfDay, lte: endOfDay },
       },
-      include: {
-        client: true,
-        service: true,
-        professional: true,
-      },
+      include: { client: true, service: true, professional: true },
       orderBy: { startTime: 'asc' },
     });
   }
 
-  // ── Cambiar estado de un turno ───────────────────────────────────────────────
   async updateStatus(id: string, tenantId: string, status: BookingStatus) {
     const booking = await this.prisma.booking.findFirst({ where: { id, tenantId } });
     if (!booking) throw new NotFoundException('Turno no encontrado');
@@ -162,7 +150,6 @@ export class BookingsService {
     return this.prisma.booking.update({ where: { id }, data });
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
   private generateSlots(
     date: string,
     openTime: string,
@@ -174,7 +161,6 @@ export class BookingsService {
     const [openH, openM] = openTime.split(':').map(Number);
     const [closeH, closeM] = closeTime.split(':').map(Number);
 
-    // UTC puro para evitar bugs de timezone
     const current = new Date(`${date}T00:00:00.000Z`);
     current.setUTCHours(openH, openM, 0, 0);
 

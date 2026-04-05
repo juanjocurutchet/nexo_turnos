@@ -23,7 +23,7 @@ type DayAvail = {
 const DEFAULT_AVAIL: DayAvail[] = DAYS_SHORT.map((_, i) => ({
   dayOfWeek: i,
   openTime: '09:00',
-  closeTime: '21:00',
+  closeTime: '12:00',
   openTime2: null,
   closeTime2: null,
   isOpen: i !== 0,
@@ -77,15 +77,35 @@ export function AdminScheduleScreen({ navigation, route }: Props) {
     setAvailability((prev) => prev.map((d, i) => (i === idx ? { ...d, [field]: value } : d)));
   };
 
+  const applyToAll = (idx: number) => {
+    const src = availability[idx];
+    Alert.alert(
+      'Aplicar horarios',
+      `¿Aplicar los horarios de ${DAYS_SHORT[src.dayOfWeek]} a todos los días abiertos?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Aplicar',
+          onPress: () => setAvailability((prev) =>
+            prev.map((d) => d.isOpen && d.dayOfWeek !== src.dayOfWeek
+              ? { ...d, openTime: src.openTime, closeTime: src.closeTime, openTime2: src.openTime2, closeTime2: src.closeTime2 }
+              : d
+            )
+          ),
+        },
+      ]
+    );
+  };
+
   const toggleShift2 = (idx: number) => {
     const day = availability[idx];
     if (day.openTime2 !== null) {
       setAvailability((prev) =>
-        prev.map((d, i) => i === idx ? { ...d, openTime2: null, closeTime2: null } : d)
+        prev.map((d, i) => i === idx ? { ...d, closeTime: '20:30', openTime2: null, closeTime2: null } : d)
       );
     } else {
       setAvailability((prev) =>
-        prev.map((d, i) => i === idx ? { ...d, openTime2: '15:00', closeTime2: '20:30' } : d)
+        prev.map((d, i) => i === idx ? { ...d, closeTime: '12:00', openTime2: '12:30', closeTime2: '20:30' } : d)
       );
     }
   };
@@ -108,7 +128,9 @@ export function AdminScheduleScreen({ navigation, route }: Props) {
       return;
     }
     try {
-      await adminApi.addHoliday(tenantId, newHolidayDate.trim(), newHolidayName.trim());
+      const parts = newHolidayDate.trim().split('/');
+      const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : newHolidayDate.trim();
+      await adminApi.addHoliday(tenantId, isoDate, newHolidayName.trim());
       setNewHolidayDate('');
       setNewHolidayName('');
       load();
@@ -198,35 +220,42 @@ export function AdminScheduleScreen({ navigation, route }: Props) {
               </View>
 
               {day.isOpen && (
-                day.openTime2 !== null ? (
-                  <View style={styles.shift2Row}>
-                    <View style={styles.shift2Spacer}>
-                      <Text style={styles.shift2Label}>Tarde</Text>
+                <>
+                  {day.openTime2 !== null ? (
+                    <View style={styles.shift2Row}>
+                      <View style={styles.shift2Spacer}>
+                        <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
+                          <Text style={styles.removeShift2Text}>✕</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.shift2Label}>Tarde</Text>
+                      </View>
+                      <View style={styles.shiftRow}>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={day.openTime2 ?? ''}
+                          onChangeText={(v) => setDay(idx, 'openTime2', v)}
+                          keyboardType="numbers-and-punctuation"
+                          maxLength={5}
+                        />
+                        <Text style={styles.timeSep}>–</Text>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={day.closeTime2 ?? ''}
+                          onChangeText={(v) => setDay(idx, 'closeTime2', v)}
+                          keyboardType="numbers-and-punctuation"
+                          maxLength={5}
+                        />
+                      </View>
                     </View>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.openTime2 ?? ''}
-                      onChangeText={(v) => setDay(idx, 'openTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
-                    <Text style={styles.timeSep}>–</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.closeTime2 ?? ''}
-                      onChangeText={(v) => setDay(idx, 'closeTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
-                    <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
-                      <Text style={styles.removeShift2Text}>✕</Text>
+                  ) : (
+                    <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
+                      <Text style={styles.addShift2Text}>+ turno tarde</Text>
                     </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
-                    <Text style={styles.addShift2Text}>+ turno tarde</Text>
+                  )}
+                  <TouchableOpacity onPress={() => applyToAll(idx)} style={styles.applyAllBtn}>
+                    <Text style={styles.applyAllText}>Aplicar a todos los días</Text>
                   </TouchableOpacity>
-                )
+                </>
               )}
             </View>
           ))}
@@ -245,23 +274,21 @@ export function AdminScheduleScreen({ navigation, route }: Props) {
 
         <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>DÍAS NO LABORABLES</Text>
         <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={[styles.inputWrap, { width: 120, marginRight: spacing.sm }]}>
-              <Text style={styles.inputLabel}>Fecha (AAAA-MM-DD)</Text>
-              <TextInput
-                style={styles.input} value={newHolidayDate}
-                onChangeText={setNewHolidayDate} placeholder="2026-05-25"
-                placeholderTextColor="#d1d5db" keyboardType="numbers-and-punctuation"
-              />
-            </View>
-            <View style={[styles.inputWrap, { flex: 1 }]}>
-              <Text style={styles.inputLabel}>Nombre</Text>
-              <TextInput
-                style={styles.input} value={newHolidayName}
-                onChangeText={setNewHolidayName} placeholder="Día de la Patria"
-                placeholderTextColor="#d1d5db"
-              />
-            </View>
+          <View style={styles.inputWrap}>
+            <Text style={styles.inputLabel}>Fecha (DD/MM/AAAA)</Text>
+            <TextInput
+              style={styles.input} value={newHolidayDate}
+              onChangeText={setNewHolidayDate} placeholder="25/05/2026"
+              placeholderTextColor="#d1d5db" keyboardType="numbers-and-punctuation"
+            />
+          </View>
+          <View style={styles.inputWrap}>
+            <Text style={styles.inputLabel}>Nombre</Text>
+            <TextInput
+              style={styles.input} value={newHolidayName}
+              onChangeText={setNewHolidayName} placeholder="Día de la Patria"
+              placeholderTextColor="#d1d5db"
+            />
           </View>
           <TouchableOpacity style={styles.addHolidayBtn} onPress={handleAddHoliday}>
             <Text style={styles.addHolidayBtnText}>+ Agregar feriado</Text>
@@ -325,14 +352,17 @@ const styles = StyleSheet.create({
   timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: 6 },
   closedText: { fontSize: 13, color: '#9ca3af' },
 
-  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  shift2Spacer: { width: 90, justifyContent: 'center' },
-  shift2Label: { fontSize: 11, color: '#9ca3af', fontWeight: '600' },
-  removeShift2: { marginLeft: spacing.sm, padding: 4 },
+  shift2Row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
+  shift2Spacer: { width: 90, flexDirection: 'row', alignItems: 'center' },
+  shift2Label: { fontSize: 11, color: '#9ca3af', fontWeight: '600', marginLeft: 4 },
+  removeShift2: { padding: 4 },
   removeShift2Text: { fontSize: 13, color: '#dc2626', fontWeight: '700' },
 
   addShift2Btn: { paddingLeft: 90, paddingTop: 6, paddingBottom: 2 },
   addShift2Text: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+
+  applyAllBtn: { paddingLeft: 90, paddingTop: 4, paddingBottom: 2 },
+  applyAllText: { fontSize: 11, color: '#9ca3af', textDecorationLine: 'underline' },
 
   saveBtn: {
     backgroundColor: colors.primary, borderRadius: radius.lg,

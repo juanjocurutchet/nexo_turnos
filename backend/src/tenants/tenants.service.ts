@@ -46,13 +46,20 @@ export class TenantsService {
     return tenant;
   }
 
-  async update(id: string, data: { name?: string; city?: string; phone?: string; address?: string; instagram?: string; facebook?: string }) {
+  async update(id: string, data: {
+    name?: string;
+    city?: string;
+    phone?: string;
+    address?: string;
+    instagram?: string;
+    facebook?: string;
+    whatsappNumber?: string;
+    logoUrl?: string;
+  }) {
     const tenant = await this.prisma.tenant.findUnique({ where: { id } });
     if (!tenant) throw new NotFoundException('Negocio no encontrado');
     return this.prisma.tenant.update({ where: { id }, data });
   }
-
-  // ── Disponibilidad semanal ────────────────────────────────────────────────
 
   async getAvailability(tenantId: string) {
     return this.prisma.weeklyAvailability.findMany({
@@ -90,8 +97,6 @@ export class TenantsService {
     return this.getAvailability(tenantId);
   }
 
-  // ── Feriados / días cerrados ──────────────────────────────────────────────
-
   async getHolidays(tenantId: string) {
     return this.prisma.holiday.findMany({
       where: { tenantId },
@@ -115,8 +120,6 @@ export class TenantsService {
     if (!holiday) throw new NotFoundException('Feriado no encontrado');
     return this.prisma.holiday.delete({ where: { id: holidayId } });
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   private defaultWeeklyAvailability() {
     return [

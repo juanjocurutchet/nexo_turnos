@@ -55,7 +55,6 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
   const [bookings, setBookings] = useState<BookingAdmin[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // La semana mostrada se calcula a partir del lunes de la semana actual + offset
   const baseWeekDate = addDays(toDateString(new Date()), weekOffset * 7);
   const weekDates = getWeekDates(baseWeekDate);
 
@@ -72,10 +71,6 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
   }, [tenantId]);
 
   useEffect(() => { load(selectedDate); }, [selectedDate, load]);
-
-  const handleSelectDay = (date: string) => {
-    setSelectedDate(date);
-  };
 
   const handleStatus = (booking: BookingAdmin, status: string) => {
     Alert.alert(
@@ -107,7 +102,6 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
         </TouchableOpacity>
         <Text style={styles.title}>Agenda</Text>
 
-        {/* Navegador de semana */}
         <View style={styles.weekNav}>
           <TouchableOpacity style={styles.navBtn} onPress={() => setWeekOffset(w => w - 1)}>
             <Text style={styles.navBtnText}>‹</Text>
@@ -118,7 +112,6 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Tira de días */}
         <View style={styles.weekStrip}>
           {weekDates.map((date, i) => {
             const d = new Date(date + 'T12:00:00Z');
@@ -128,7 +121,7 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
               <TouchableOpacity
                 key={date}
                 style={[styles.dayPill, isSelected && styles.dayPillSelected]}
-                onPress={() => handleSelectDay(date)}
+                onPress={() => setSelectedDate(date)}
               >
                 <Text style={[styles.dayMin, isSelected && styles.dayMinSelected]}>
                   {DAYS_MIN[i]}

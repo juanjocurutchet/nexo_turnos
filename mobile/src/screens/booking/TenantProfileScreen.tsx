@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, StatusBar,
+  TouchableOpacity, ActivityIndicator, StatusBar, Image,
 } from 'react-native';
 import { RootStackParamList, Tenant, Service } from '../../types';
 import { AppNavigation, AppRoute } from '../../navigation/AppNavigator';
@@ -60,13 +60,17 @@ export function TenantProfileScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 + BOTTOM_INSET }}>
 
-        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={{ fontSize: 36 }}>💅</Text>
-          </View>
+          {tenant.logoUrl
+            ? <Image source={{ uri: tenant.logoUrl }} style={styles.logoImage} resizeMode="contain" />
+            : (
+              <View style={styles.avatar}>
+                <Text style={{ fontSize: 36 }}>💅</Text>
+              </View>
+            )
+          }
           <Text style={styles.tenantName}>{tenant.name}</Text>
           <Text style={styles.tenantCity}>{tenant.city}</Text>
 
@@ -84,7 +88,6 @@ export function TenantProfileScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Servicios */}
         <View style={styles.body}>
           <Text style={styles.sectionTitle}>¿Qué servicio necesitás?</Text>
 
@@ -157,7 +160,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.lg,
     borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)',
+    overflow: 'hidden',
   },
+  avatarImage: { width: 80, height: 80, borderRadius: 22 },
+  logoImage: { width: 110, height: 110, marginBottom: spacing.lg },
   tenantName: { fontSize: 24, fontWeight: '700', color: '#fff', marginBottom: 4 },
   tenantCity: { fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: spacing.sm },
   rating: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },

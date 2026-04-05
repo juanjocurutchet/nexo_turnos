@@ -23,7 +23,7 @@ type DayAvail = {
 const DEFAULT_AVAILABILITY: DayAvail[] = DAYS_LABELS.map((_, i) => ({
   dayOfWeek: i,
   startTime: '09:00',
-  endTime: '21:00',
+  endTime: '12:00',
   startTime2: null,
   endTime2: null,
   isAvailable: i !== 0,
@@ -93,15 +93,35 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
     );
   };
 
+  const applyToAll = (idx: number) => {
+    const src = availability[idx];
+    Alert.alert(
+      'Aplicar horarios',
+      `¿Aplicar los horarios de ${DAYS_LABELS[src.dayOfWeek]} a todos los días disponibles?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Aplicar',
+          onPress: () => setAvailability((prev) =>
+            prev.map((d) => d.isAvailable && d.dayOfWeek !== src.dayOfWeek
+              ? { ...d, startTime: src.startTime, endTime: src.endTime, startTime2: src.startTime2, endTime2: src.endTime2 }
+              : d
+            )
+          ),
+        },
+      ]
+    );
+  };
+
   const toggleShift2 = (idx: number) => {
     const day = availability[idx];
     if (day.startTime2 !== null) {
       setAvailability((prev) =>
-        prev.map((d, i) => i === idx ? { ...d, startTime2: null, endTime2: null } : d)
+        prev.map((d, i) => i === idx ? { ...d, endTime: '20:30', startTime2: null, endTime2: null } : d)
       );
     } else {
       setAvailability((prev) =>
-        prev.map((d, i) => i === idx ? { ...d, startTime2: '15:00', endTime2: '20:30' } : d)
+        prev.map((d, i) => i === idx ? { ...d, endTime: '12:00', startTime2: '12:30', endTime2: '20:30' } : d)
       );
     }
   };
@@ -266,35 +286,42 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
 
               {/* Segundo turno */}
               {day.isAvailable && (
-                day.startTime2 !== null ? (
-                  <View style={styles.shift2Row}>
-                    <View style={styles.shift2Spacer}>
-                      <Text style={styles.shift2Label}>Tarde</Text>
+                <>
+                  {day.startTime2 !== null ? (
+                    <View style={styles.shift2Row}>
+                      <View style={styles.shift2Spacer}>
+                        <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
+                          <Text style={styles.removeShift2Text}>✕</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.shift2Label}>Tarde</Text>
+                      </View>
+                      <View style={styles.shiftRow}>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={day.startTime2 ?? ''}
+                          onChangeText={(v) => setAvailDay(idx, 'startTime2', v)}
+                          keyboardType="numbers-and-punctuation"
+                          maxLength={5}
+                        />
+                        <Text style={styles.timeSep}>–</Text>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={day.endTime2 ?? ''}
+                          onChangeText={(v) => setAvailDay(idx, 'endTime2', v)}
+                          keyboardType="numbers-and-punctuation"
+                          maxLength={5}
+                        />
+                      </View>
                     </View>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.startTime2 ?? ''}
-                      onChangeText={(v) => setAvailDay(idx, 'startTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
-                    <Text style={styles.timeSep}>–</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={day.endTime2 ?? ''}
-                      onChangeText={(v) => setAvailDay(idx, 'endTime2', v)}
-                      keyboardType="numbers-and-punctuation"
-                      maxLength={5}
-                    />
-                    <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
-                      <Text style={styles.removeShift2Text}>✕</Text>
+                  ) : (
+                    <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
+                      <Text style={styles.addShift2Text}>+ turno tarde</Text>
                     </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.addShift2Btn}>
-                    <Text style={styles.addShift2Text}>+ turno tarde</Text>
+                  )}
+                  <TouchableOpacity onPress={() => applyToAll(idx)} style={styles.applyAllBtn}>
+                    <Text style={styles.applyAllText}>Aplicar a todos los días</Text>
                   </TouchableOpacity>
-                )
+                </>
               )}
             </View>
           ))}
@@ -361,14 +388,17 @@ const styles = StyleSheet.create({
   timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: 6 },
   closedText: { fontSize: 13, color: '#9ca3af' },
 
-  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  shift2Spacer: { width: 90, justifyContent: 'center' },
-  shift2Label: { fontSize: 11, color: '#9ca3af', fontWeight: '600' },
-  removeShift2: { marginLeft: spacing.sm, padding: 4 },
+  shift2Row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
+  shift2Spacer: { width: 90, flexDirection: 'row', alignItems: 'center' },
+  shift2Label: { fontSize: 11, color: '#9ca3af', fontWeight: '600', marginLeft: 4 },
+  removeShift2: { padding: 4 },
   removeShift2Text: { fontSize: 13, color: '#dc2626', fontWeight: '700' },
 
   addShift2Btn: { paddingLeft: 90, paddingTop: 6, paddingBottom: 2 },
   addShift2Text: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+
+  applyAllBtn: { paddingLeft: 90, paddingTop: 4, paddingBottom: 2 },
+  applyAllText: { fontSize: 11, color: '#9ca3af', textDecorationLine: 'underline' },
 
   serviceRow: {
     flexDirection: 'row', alignItems: 'center',
