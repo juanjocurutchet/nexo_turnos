@@ -164,13 +164,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1, marginBottom: spacing.md,
   },
   detailRow: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1, borderBottomColor: '#f0f0f5',
   },
   detailIcon: {
     width: 36, height: 36, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
+    marginRight: spacing.md,
   },
   detailLabel: { fontSize: 11, color: '#9ca3af', marginBottom: 2 },
   detailValue: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   waBannerText: { fontSize: 12, color: colors.primary, fontWeight: '500', textAlign: 'center' },
 
-  actions: { gap: spacing.sm },
+  actions: {},
   btnSecondary: {
     borderRadius: radius.lg, paddingVertical: spacing.lg,
     alignItems: 'center', borderWidth: 2, borderColor: '#e8e6f0',

@@ -34,6 +34,9 @@ export class TenantsService {
         professionals: {
           where: { isActive: true },
           orderBy: { displayOrder: 'asc' },
+          include: {
+            services: { include: { service: true } },
+          },
         },
         services: {
           where: { isActive: true },

@@ -123,8 +123,7 @@ const styles = StyleSheet.create({
   profCard: {
     backgroundColor: colors.white, borderRadius: radius.lg,
     padding: spacing.lg, flexDirection: 'row',
-    alignItems: 'center', gap: spacing.md,
-    marginBottom: spacing.sm, borderWidth: 2,
+    alignItems: 'center', marginBottom: spacing.sm, borderWidth: 2,
     borderColor: 'transparent',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
@@ -134,6 +133,7 @@ const styles = StyleSheet.create({
   profAvatar: {
     width: 52, height: 52, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center',
+    marginRight: spacing.md,
   },
   profInfo: { flex: 1 },
   profName: { fontSize: 15, fontWeight: '600', color: '#1a1a2e', marginBottom: 2 },

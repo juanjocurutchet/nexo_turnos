@@ -164,11 +164,12 @@ const styles = StyleSheet.create({
   rating: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
   ratingStars: { fontSize: 13, color: '#fbbf24', fontWeight: '700' },
   ratingCount: { fontSize: 13, color: 'rgba(255,255,255,0.6)' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap' },
   chip: {
     paddingHorizontal: 10, paddingVertical: 4,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: radius.full,
+    marginRight: spacing.sm, marginBottom: spacing.xs,
   },
   chipText: { fontSize: 11, color: 'rgba(255,255,255,0.9)' },
 
@@ -181,7 +182,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
   serviceIcon: {
     width: 48, height: 48, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
+    marginRight: spacing.md,
   },
   serviceInfo: { flex: 1 },
   serviceName: { fontSize: 14, fontWeight: '600', color: '#1a1a2e', marginBottom: 2 },

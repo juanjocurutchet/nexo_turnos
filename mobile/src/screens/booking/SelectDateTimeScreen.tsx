@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
 
   slotsSection: { paddingHorizontal: spacing.xl },
   slotsTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a2e', marginBottom: spacing.md },
-  slotsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  slotsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   slot: {
     width: '30%', paddingVertical: 10, borderRadius: 10,
     borderWidth: 2, borderColor: '#e8e6f0',
