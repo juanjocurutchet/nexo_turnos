@@ -121,4 +121,5 @@ export type RootStackParamList = {
   AdminServiceDetail: { tenantId: string; serviceId?: string };
   AdminSchedule: { tenantId: string };
   AdminSettings: { tenantId: string };
+  AdminBookingCreate: { tenantId: string; date: string };
 };

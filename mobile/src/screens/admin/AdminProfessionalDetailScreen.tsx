@@ -33,37 +33,44 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
   const { tenantId, professionalId } = route.params;
   const isNew = !professionalId;
 
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
   const [availability, setAvailability] = useState<DayAvail[]>(DEFAULT_AVAILABILITY);
+  const [allServices, setAllServices] = useState<any[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   const load = useCallback(async () => {
-    if (isNew) return;
     try {
-      const data = await adminApi.getProfessional(professionalId!, tenantId);
-      setFirstName(data.firstName);
-      setLastName(data.lastName);
-      setBio(data.bio ?? '');
-      if (data.availability?.length) {
-        setAvailability(
-          DAYS_LABELS.map((_, i) => {
-            const found = data.availability.find((a: any) => a.dayOfWeek === i);
-            if (found) {
-              return {
-                dayOfWeek: i,
-                startTime: found.startTime,
-                endTime: found.endTime,
-                startTime2: found.startTime2 ?? null,
-                endTime2: found.endTime2 ?? null,
-                isAvailable: found.isAvailable,
-              };
-            }
-            return DEFAULT_AVAILABILITY[i];
-          }),
-        );
+      const services = await adminApi.getServices(tenantId);
+      setAllServices(services);
+
+      if (!isNew) {
+        const data = await adminApi.getProfessional(professionalId!, tenantId);
+        setFirstName(data.firstName);
+        setLastName(data.lastName);
+        setBio(data.bio ?? '');
+        setSelectedServiceIds(data.services?.map((ps: any) => ps.serviceId) ?? []);
+        if (data.availability?.length) {
+          setAvailability(
+            DAYS_LABELS.map((_, i) => {
+              const found = data.availability.find((a: any) => a.dayOfWeek === i);
+              if (found) {
+                return {
+                  dayOfWeek: i,
+                  startTime: found.startTime,
+                  endTime: found.endTime,
+                  startTime2: found.startTime2 ?? null,
+                  endTime2: found.endTime2 ?? null,
+                  isAvailable: found.isAvailable,
+                };
+              }
+              return DEFAULT_AVAILABILITY[i];
+            }),
+          );
+        }
       }
     } catch {
       Alert.alert('Error', 'No se pudo cargar el profesional');
@@ -71,6 +78,12 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
       setLoading(false);
     }
   }, [isNew, professionalId, tenantId]);
+
+  const toggleService = (serviceId: string) => {
+    setSelectedServiceIds((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+    );
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -106,6 +119,7 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           bio: bio.trim(),
+          serviceIds: selectedServiceIds,
         });
         await adminApi.updateProfessionalAvailability(prof.id, tenantId, availability);
       } else {
@@ -113,6 +127,7 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           bio: bio.trim(),
+          serviceIds: selectedServiceIds,
         });
         await adminApi.updateProfessionalAvailability(professionalId!, tenantId, availability);
       }
@@ -178,6 +193,36 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
           </View>
         </View>
 
+        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>SERVICIOS QUE REALIZA</Text>
+        <View style={styles.card}>
+          {allServices.length === 0 ? (
+            <Text style={styles.emptyServices}>No hay servicios cargados aún</Text>
+          ) : (
+            allServices.map((svc, idx) => {
+              const selected = selectedServiceIds.includes(svc.id);
+              return (
+                <TouchableOpacity
+                  key={svc.id}
+                  style={[styles.serviceRow, idx < allServices.length - 1 && styles.serviceRowBorder]}
+                  onPress={() => toggleService(svc.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.serviceInfo}>
+                    <Text style={styles.serviceEmoji}>{svc.emoji ?? '✨'}</Text>
+                    <View>
+                      <Text style={styles.serviceName}>{svc.name}</Text>
+                      <Text style={styles.serviceMeta}>{svc.durationMin} min · ${Number(svc.price).toLocaleString('es-AR')}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
+                    {selected && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+
         <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>DISPONIBILIDAD SEMANAL</Text>
         <View style={styles.card}>
           {availability.map((day, idx) => (
@@ -223,24 +268,24 @@ export function AdminProfessionalDetailScreen({ navigation, route }: Props) {
               {day.isAvailable && (
                 day.startTime2 !== null ? (
                   <View style={styles.shift2Row}>
-                    <Text style={styles.shift2Label}>Tarde</Text>
-                    <View style={styles.shiftRow}>
-                      <TextInput
-                        style={styles.timeInput}
-                        value={day.startTime2 ?? ''}
-                        onChangeText={(v) => setAvailDay(idx, 'startTime2', v)}
-                        keyboardType="numbers-and-punctuation"
-                        maxLength={5}
-                      />
-                      <Text style={styles.timeSep}>–</Text>
-                      <TextInput
-                        style={styles.timeInput}
-                        value={day.endTime2 ?? ''}
-                        onChangeText={(v) => setAvailDay(idx, 'endTime2', v)}
-                        keyboardType="numbers-and-punctuation"
-                        maxLength={5}
-                      />
+                    <View style={styles.shift2Spacer}>
+                      <Text style={styles.shift2Label}>Tarde</Text>
                     </View>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.startTime2 ?? ''}
+                      onChangeText={(v) => setAvailDay(idx, 'startTime2', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
+                    <Text style={styles.timeSep}>–</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={day.endTime2 ?? ''}
+                      onChangeText={(v) => setAvailDay(idx, 'endTime2', v)}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={5}
+                    />
                     <TouchableOpacity onPress={() => toggleShift2(idx)} style={styles.removeShift2}>
                       <Text style={styles.removeShift2Text}>✕</Text>
                     </TouchableOpacity>
@@ -316,13 +361,32 @@ const styles = StyleSheet.create({
   timeSep: { fontSize: 14, color: '#9ca3af', marginHorizontal: 6 },
   closedText: { fontSize: 13, color: '#9ca3af' },
 
-  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6, paddingLeft: 4 },
-  shift2Label: { fontSize: 11, color: '#9ca3af', width: 44, fontWeight: '600' },
+  shift2Row: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  shift2Spacer: { width: 90, justifyContent: 'center' },
+  shift2Label: { fontSize: 11, color: '#9ca3af', fontWeight: '600' },
   removeShift2: { marginLeft: spacing.sm, padding: 4 },
   removeShift2Text: { fontSize: 13, color: '#dc2626', fontWeight: '700' },
 
-  addShift2Btn: { paddingLeft: 4, paddingTop: 6, paddingBottom: 2 },
+  addShift2Btn: { paddingLeft: 90, paddingTop: 6, paddingBottom: 2 },
   addShift2Text: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+
+  serviceRow: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', paddingVertical: 12,
+  },
+  serviceRowBorder: { borderBottomWidth: 1, borderBottomColor: '#f0f0f5' },
+  serviceInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  serviceEmoji: { fontSize: 20, marginRight: spacing.md },
+  serviceName: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
+  serviceMeta: { fontSize: 12, color: '#9ca3af', marginTop: 1 },
+  checkbox: {
+    width: 24, height: 24, borderRadius: 6,
+    borderWidth: 2, borderColor: '#d1d5db',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkboxSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkmark: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  emptyServices: { fontSize: 13, color: '#9ca3af', textAlign: 'center', paddingVertical: spacing.md },
 
   saveBtn: {
     backgroundColor: colors.primary, borderRadius: radius.lg,

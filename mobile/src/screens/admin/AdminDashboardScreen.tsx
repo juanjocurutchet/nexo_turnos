@@ -150,6 +150,12 @@ export function AdminDashboardScreen({ navigation, route }: Props) {
         <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
+          <TouchableOpacity
+            style={styles.addBookingBtn}
+            onPress={() => navigation.navigate('AdminBookingCreate', { tenantId, date: selectedDate })}
+          >
+            <Text style={styles.addBookingText}>+ Agregar turno</Text>
+          </TouchableOpacity>
           {bookings.length === 0 ? (
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>📭</Text>
@@ -272,6 +278,13 @@ const styles = StyleSheet.create({
   serviceRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
   serviceName: { fontSize: 13, fontWeight: '600', color: '#374151' },
   serviceProf: { fontSize: 13, color: '#9ca3af' },
+
+  addBookingBtn: {
+    backgroundColor: '#ede9fe', borderRadius: radius.lg,
+    paddingVertical: 11, alignItems: 'center',
+    marginBottom: spacing.md, borderWidth: 1.5, borderColor: '#c4b5fd',
+  },
+  addBookingText: { fontSize: 14, fontWeight: '700', color: colors.primary },
 
   actions: { flexDirection: 'row' },
   actionBtn: {
