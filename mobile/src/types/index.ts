@@ -69,18 +69,55 @@ export interface Booking {
   tenant: { name: string };
 }
 
+export interface WeeklyAvailabilityRecord {
+  id: string;
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+  isOpen: boolean;
+}
+
+export interface ProfessionalAvailabilityRecord {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface Holiday {
+  id: string;
+  date: string;
+  name: string;
+  isClosed: boolean;
+}
+
+export interface BookingAdmin {
+  id: string;
+  startTime: string;
+  endTime: string;
+  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  totalPrice: string;
+  notes?: string;
+  client: { firstName: string; lastName: string; phone: string };
+  service: Service;
+  professional: Professional;
+}
+
 // Navegación
 export type RootStackParamList = {
+  // Flujo cliente
   TenantProfile: { slug: string };
-  SelectService: { tenant: Tenant };
   SelectProfessional: { tenant: Tenant; service: Service };
   SelectDateTime: { tenant: Tenant; service: Service; professional: Professional | null };
-  ClientInfo: {
-    tenant: Tenant;
-    service: Service;
-    professional: Professional;
-    date: string;
-    time: string;
-  };
+  ClientInfo: { tenant: Tenant; service: Service; professional: Professional; date: string; time: string };
   BookingConfirmed: { booking: Booking };
+  // Admin
+  AdminHome: { tenantId: string; tenantName: string };
+  AdminDashboard: { tenantId: string };
+  AdminProfessionals: { tenantId: string };
+  AdminProfessionalDetail: { tenantId: string; professionalId?: string };
+  AdminServices: { tenantId: string };
+  AdminServiceDetail: { tenantId: string; serviceId?: string };
+  AdminSchedule: { tenantId: string };
 };

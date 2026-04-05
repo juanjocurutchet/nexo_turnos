@@ -88,6 +88,13 @@ export function TenantProfileScreen({ navigation, route }: Props) {
         <View style={styles.body}>
           <Text style={styles.sectionTitle}>¿Qué servicio necesitás?</Text>
 
+          <TouchableOpacity
+            style={styles.adminLink}
+            onPress={() => navigation.navigate('AdminHome', { tenantId: tenant.id, tenantName: tenant.name })}
+          >
+            <Text style={styles.adminLinkText}>Acceso administrador</Text>
+          </TouchableOpacity>
+
           {tenant.services.map((service) => {
             const isSelected = selected === service.id;
             const iconStyle = SERVICE_ICONS[service.emoji ?? '💅'] ?? { bg: '#f3f4f6' };
@@ -212,4 +219,7 @@ const styles = StyleSheet.create({
   },
   footerBtnDisabled: { backgroundColor: '#4b5563' },
   footerBtnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
+
+  adminLink: { alignItems: 'center', paddingVertical: spacing.sm, marginBottom: spacing.sm },
+  adminLinkText: { fontSize: 11, color: '#9ca3af', textDecorationLine: 'underline' },
 });

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Param, Body } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 
@@ -11,9 +11,33 @@ export class TenantsController {
     return this.tenantsService.create(dto);
   }
 
-  // Ruta pública: perfil del negocio para el cliente final
   @Get(':slug/public')
   getPublicProfile(@Param('slug') slug: string) {
     return this.tenantsService.findBySlug(slug);
+  }
+
+  @Get(':id/availability')
+  getAvailability(@Param('id') id: string) {
+    return this.tenantsService.getAvailability(id);
+  }
+
+  @Patch(':id/availability')
+  updateAvailability(@Param('id') id: string, @Body() body: { availability: any[] }) {
+    return this.tenantsService.updateAvailability(id, body.availability);
+  }
+
+  @Get(':id/holidays')
+  getHolidays(@Param('id') id: string) {
+    return this.tenantsService.getHolidays(id);
+  }
+
+  @Post(':id/holidays')
+  addHoliday(@Param('id') id: string, @Body() body: { date: string; name: string; isClosed?: boolean }) {
+    return this.tenantsService.addHoliday(id, body);
+  }
+
+  @Delete(':id/holidays/:holidayId')
+  removeHoliday(@Param('id') id: string, @Param('holidayId') holidayId: string) {
+    return this.tenantsService.removeHoliday(id, holidayId);
   }
 }

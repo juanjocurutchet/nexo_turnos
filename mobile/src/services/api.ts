@@ -37,3 +37,61 @@ export const bookingApi = {
     notes?: string;
   }) => api.post('/bookings', data).then((r) => r.data),
 };
+
+export const adminApi = {
+  // Agenda
+  getDayBookings: (tenantId: string, date: string) =>
+    api.get('/bookings/day', { params: { tenantId, date } }).then((r) => r.data),
+
+  updateBookingStatus: (id: string, tenantId: string, status: string) =>
+    api.patch(`/bookings/${id}/status`, { tenantId, status }).then((r) => r.data),
+
+  // Profesionales
+  getProfessionals: (tenantId: string) =>
+    api.get('/professionals', { params: { tenantId } }).then((r) => r.data),
+
+  getProfessional: (id: string, tenantId: string) =>
+    api.get(`/professionals/${id}`, { params: { tenantId } }).then((r) => r.data),
+
+  createProfessional: (data: any) =>
+    api.post('/professionals', data).then((r) => r.data),
+
+  updateProfessional: (id: string, tenantId: string, data: any) =>
+    api.patch(`/professionals/${id}`, data, { params: { tenantId } }).then((r) => r.data),
+
+  updateProfessionalAvailability: (id: string, tenantId: string, availability: any[]) =>
+    api.patch(`/professionals/${id}/availability`, { availability }, { params: { tenantId } }).then((r) => r.data),
+
+  deactivateProfessional: (id: string, tenantId: string) =>
+    api.delete(`/professionals/${id}`, { params: { tenantId } }).then((r) => r.data),
+
+  // Servicios
+  getServices: (tenantId: string) =>
+    api.get('/services', { params: { tenantId } }).then((r) => r.data),
+
+  createService: (data: any) =>
+    api.post('/services', data).then((r) => r.data),
+
+  updateService: (id: string, tenantId: string, data: any) =>
+    api.patch(`/services/${id}`, data, { params: { tenantId } }).then((r) => r.data),
+
+  deactivateService: (id: string, tenantId: string) =>
+    api.delete(`/services/${id}`, { params: { tenantId } }).then((r) => r.data),
+
+  // Horarios del local
+  getAvailability: (tenantId: string) =>
+    api.get(`/tenants/${tenantId}/availability`).then((r) => r.data),
+
+  updateAvailability: (tenantId: string, availability: any[]) =>
+    api.patch(`/tenants/${tenantId}/availability`, { availability }).then((r) => r.data),
+
+  // Feriados
+  getHolidays: (tenantId: string) =>
+    api.get(`/tenants/${tenantId}/holidays`).then((r) => r.data),
+
+  addHoliday: (tenantId: string, date: string, name: string) =>
+    api.post(`/tenants/${tenantId}/holidays`, { date, name }).then((r) => r.data),
+
+  removeHoliday: (tenantId: string, holidayId: string) =>
+    api.delete(`/tenants/${tenantId}/holidays/${holidayId}`).then((r) => r.data),
+};

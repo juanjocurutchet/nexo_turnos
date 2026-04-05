@@ -1,11 +1,18 @@
 import React, { useState, useCallback } from 'react';
 import { View } from 'react-native';
-import { RootStackParamList, Tenant, Service, Professional, Booking } from '../types';
+import { RootStackParamList } from '../types';
 import { TenantProfileScreen } from '../screens/booking/TenantProfileScreen';
 import { SelectProfessionalScreen } from '../screens/booking/SelectProfessionalScreen';
 import { SelectDateTimeScreen } from '../screens/booking/SelectDateTimeScreen';
 import { ClientInfoScreen } from '../screens/booking/ClientInfoScreen';
 import { BookingConfirmedScreen } from '../screens/booking/BookingConfirmedScreen';
+import { AdminHomeScreen } from '../screens/admin/AdminHomeScreen';
+import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
+import { AdminProfessionalsScreen } from '../screens/admin/AdminProfessionalsScreen';
+import { AdminProfessionalDetailScreen } from '../screens/admin/AdminProfessionalDetailScreen';
+import { AdminServicesScreen } from '../screens/admin/AdminServicesScreen';
+import { AdminServiceDetailScreen } from '../screens/admin/AdminServiceDetailScreen';
+import { AdminScheduleScreen } from '../screens/admin/AdminScheduleScreen';
 
 // ── Tipos de navegación simplificados ────────────────────────────────────────
 
@@ -83,6 +90,55 @@ export function AppNavigator() {
           <BookingConfirmedScreen
             navigation={navigation}
             route={{ params: current.params as RootStackParamList['BookingConfirmed'] }}
+          />
+        );
+      case 'AdminHome':
+        return (
+          <AdminHomeScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminHome'] }}
+          />
+        );
+      case 'AdminDashboard':
+        return (
+          <AdminDashboardScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminDashboard'] }}
+          />
+        );
+      case 'AdminProfessionals':
+        return (
+          <AdminProfessionalsScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminProfessionals'] }}
+          />
+        );
+      case 'AdminProfessionalDetail':
+        return (
+          <AdminProfessionalDetailScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminProfessionalDetail'] }}
+          />
+        );
+      case 'AdminServices':
+        return (
+          <AdminServicesScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminServices'] }}
+          />
+        );
+      case 'AdminServiceDetail':
+        return (
+          <AdminServiceDetailScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminServiceDetail'] }}
+          />
+        );
+      case 'AdminSchedule':
+        return (
+          <AdminScheduleScreen
+            navigation={navigation}
+            route={{ params: current.params as RootStackParamList['AdminSchedule'] }}
           />
         );
       default:

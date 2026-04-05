@@ -8,23 +8,15 @@ export class TenantsService {
 
   async create(dto: CreateTenantDto) {
     const existing = await this.prisma.tenant.findUnique({ where: { slug: dto.slug } });
-    if (existing) {
-      throw new ConflictException(`El slug "${dto.slug}" ya está en uso`);
-    }
+    if (existing) throw new ConflictException(`El slug "${dto.slug}" ya está en uso`);
 
-    const tenant = await this.prisma.tenant.create({
+    return this.prisma.tenant.create({
       data: {
         ...dto,
-        availability: {
-          createMany: {
-            data: this.defaultWeeklyAvailability(),
-          },
-        },
+        availability: { createMany: { data: this.defaultWeeklyAvailability() } },
       },
       include: { availability: true },
     });
-
-    return tenant;
   }
 
   async findBySlug(slug: string) {
@@ -34,9 +26,7 @@ export class TenantsService {
         professionals: {
           where: { isActive: true },
           orderBy: { displayOrder: 'asc' },
-          include: {
-            services: { include: { service: true } },
-          },
+          include: { services: { include: { service: true } } },
         },
         services: {
           where: { isActive: true },
@@ -46,7 +36,6 @@ export class TenantsService {
         availability: { orderBy: { dayOfWeek: 'asc' } },
       },
     });
-
     if (!tenant) throw new NotFoundException(`Negocio "${slug}" no encontrado`);
     return tenant;
   }
@@ -57,16 +46,68 @@ export class TenantsService {
     return tenant;
   }
 
-  // Disponibilidad por defecto: Lun-Vie 9-19, Sáb 9-14, Dom cerrado
+  // ── Disponibilidad semanal ────────────────────────────────────────────────
+
+  async getAvailability(tenantId: string) {
+    return this.prisma.weeklyAvailability.findMany({
+      where: { tenantId },
+      orderBy: { dayOfWeek: 'asc' },
+    });
+  }
+
+  async updateAvailability(
+    tenantId: string,
+    days: { dayOfWeek: number; openTime: string; closeTime: string; isOpen: boolean }[],
+  ) {
+    await Promise.all(
+      days.map((day) =>
+        this.prisma.weeklyAvailability.upsert({
+          where: { tenantId_dayOfWeek: { tenantId, dayOfWeek: day.dayOfWeek } },
+          update: { openTime: day.openTime, closeTime: day.closeTime, isOpen: day.isOpen },
+          create: { tenantId, ...day },
+        }),
+      ),
+    );
+    return this.getAvailability(tenantId);
+  }
+
+  // ── Feriados / días cerrados ──────────────────────────────────────────────
+
+  async getHolidays(tenantId: string) {
+    return this.prisma.holiday.findMany({
+      where: { tenantId },
+      orderBy: { date: 'asc' },
+    });
+  }
+
+  async addHoliday(tenantId: string, body: { date: string; name: string; isClosed?: boolean }) {
+    return this.prisma.holiday.create({
+      data: {
+        tenantId,
+        date: new Date(body.date),
+        name: body.name,
+        isClosed: body.isClosed ?? true,
+      },
+    });
+  }
+
+  async removeHoliday(tenantId: string, holidayId: string) {
+    const holiday = await this.prisma.holiday.findFirst({ where: { id: holidayId, tenantId } });
+    if (!holiday) throw new NotFoundException('Feriado no encontrado');
+    return this.prisma.holiday.delete({ where: { id: holidayId } });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   private defaultWeeklyAvailability() {
     return [
-      { dayOfWeek: 0, openTime: '09:00', closeTime: '21:00', isOpen: false }, // Dom
-      { dayOfWeek: 1, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Lun
-      { dayOfWeek: 2, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Mar
-      { dayOfWeek: 3, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Mié
-      { dayOfWeek: 4, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Jue
-      { dayOfWeek: 5, openTime: '09:00', closeTime: '21:00', isOpen: true },  // Vie
-      { dayOfWeek: 6, openTime: '09:00', closeTime: '15:00', isOpen: true },  // Sáb
+      { dayOfWeek: 0, openTime: '09:00', closeTime: '21:00', isOpen: false },
+      { dayOfWeek: 1, openTime: '09:00', closeTime: '21:00', isOpen: true },
+      { dayOfWeek: 2, openTime: '09:00', closeTime: '21:00', isOpen: true },
+      { dayOfWeek: 3, openTime: '09:00', closeTime: '21:00', isOpen: true },
+      { dayOfWeek: 4, openTime: '09:00', closeTime: '21:00', isOpen: true },
+      { dayOfWeek: 5, openTime: '09:00', closeTime: '21:00', isOpen: true },
+      { dayOfWeek: 6, openTime: '09:00', closeTime: '15:00', isOpen: true },
     ];
   }
 }
