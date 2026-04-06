@@ -13,6 +13,8 @@ export function SettingsWebView({ tenantId }: { tenantId: string }) {
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [whatsappPhoneId, setWhatsappPhoneId] = useState('');
+  const [whatsappToken, setWhatsappToken] = useState('');
   const [logoUri, setLogoUri] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -25,6 +27,8 @@ export function SettingsWebView({ tenantId }: { tenantId: string }) {
       setInstagram(data.instagram ?? '');
       setFacebook(data.facebook ?? '');
       setWhatsappNumber(data.whatsappNumber ?? '');
+      setWhatsappPhoneId(data.whatsappPhoneId ?? '');
+      setWhatsappToken(data.whatsappToken ?? '');
       setLogoUri(data.logoUrl ?? null);
     } catch {
       Alert.alert('Error', 'No se pudieron cargar los datos');
@@ -68,6 +72,8 @@ export function SettingsWebView({ tenantId }: { tenantId: string }) {
         instagram: instagram.trim() || undefined,
         facebook: facebook.trim() || undefined,
         whatsappNumber: whatsappNumber.trim() || undefined,
+        whatsappPhoneId: whatsappPhoneId.trim() || undefined,
+        whatsappToken: whatsappToken.trim() || undefined,
         logoUrl: logoUri ?? undefined,
       });
       Alert.alert('Guardado', 'Configuración actualizada');
@@ -125,20 +131,35 @@ export function SettingsWebView({ tenantId }: { tenantId: string }) {
             <Field label="Facebook (nombre de página)" value={facebook} onChange={setFacebook} placeholder="MG Estética Integral" autoCapitalize="none" />
           </View>
 
-          <Text style={[s.sectionLabel, { marginTop: 20 }]}>MENSAJES AUTOMÁTICOS</Text>
+          <Text style={[s.sectionLabel, { marginTop: 20 }]}>MENSAJES AUTOMÁTICOS (WHATSAPP)</Text>
           <View style={s.card}>
             <View style={s.whatsappInfo}>
               <Text style={{ fontSize: 18, marginRight: 10 }}>💬</Text>
               <Text style={s.whatsappInfoText}>
-                Nexo Turnos enviará mensajes automáticos por WhatsApp: confirmación al reservar, recordatorio 48 hs antes, recordatorio 2 hs antes, y cancelaciones.
+                Nexo Turnos envía mensajes automáticos: confirmación al reservar, aviso de cancelación. Necesitás una cuenta de WhatsApp Business API (Meta).
               </Text>
             </View>
             <Field
-              label="Número de WhatsApp del negocio"
+              label="Número de WhatsApp (visible para clientes)"
               value={whatsappNumber}
               onChange={setWhatsappNumber}
               placeholder="+5492215001234"
               hint="Con código de país y área, sin espacios. Ej: +5492215001234"
+            />
+            <Field
+              label="Phone Number ID (de Meta for Developers)"
+              value={whatsappPhoneId}
+              onChange={setWhatsappPhoneId}
+              placeholder="123456789012345"
+              autoCapitalize="none"
+            />
+            <Field
+              label="Access Token (de Meta for Developers)"
+              value={whatsappToken}
+              onChange={setWhatsappToken}
+              placeholder="EAAxxxxx..."
+              autoCapitalize="none"
+              secureTextEntry
             />
           </View>
 
@@ -158,7 +179,7 @@ export function SettingsWebView({ tenantId }: { tenantId: string }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, hint, autoCapitalize }: any) {
+function Field({ label, value, onChange, placeholder, hint, autoCapitalize, secureTextEntry }: any) {
   return (
     <View style={s.fieldWrap}>
       <Text style={s.fieldLabel}>{label}</Text>
@@ -169,6 +190,7 @@ function Field({ label, value, onChange, placeholder, hint, autoCapitalize }: an
         placeholder={placeholder}
         placeholderTextColor="#4b5563"
         autoCapitalize={autoCapitalize ?? 'sentences'}
+        secureTextEntry={secureTextEntry}
       />
       {hint && <Text style={s.fieldHint}>{hint}</Text>}
     </View>

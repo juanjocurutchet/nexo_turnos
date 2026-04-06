@@ -24,6 +24,8 @@ model Tenant {
   instagram       String?
   facebook        String?
   whatsappNumber  String?
+  whatsappPhoneId String?
+  whatsappToken   String?
   timezone    String   @default("America/Argentina/Buenos_Aires")
   currency    String   @default("ARS")
   isActive    Boolean  @default(true)

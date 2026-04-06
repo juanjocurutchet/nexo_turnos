@@ -4,12 +4,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { WhatsappService } from '../notifications/whatsapp.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingStatus } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly whatsapp: WhatsappService,
+  ) {}
 
   async getAvailableSlots(
     tenantId: string,
@@ -102,7 +106,7 @@ export class BookingsService {
       },
     });
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         tenantId: dto.tenantId,
         clientId: client.id,
@@ -118,9 +122,23 @@ export class BookingsService {
         client: true,
         service: true,
         professional: true,
-        tenant: { select: { name: true, phone: true, address: true } },
+        tenant: { select: { name: true, phone: true, address: true, whatsappPhoneId: true, whatsappToken: true } },
       },
     });
+
+    const credentials = this.tenantCredentials(booking.tenant);
+    if (client.phone && credentials) {
+      this.whatsapp.sendBookingReceived({
+        clientPhone: client.phone,
+        clientName: client.firstName,
+        businessName: booking.tenant.name,
+        serviceName: booking.service.name,
+        date: this.fmtDate(startTime),
+        time: this.fmtTime(startTime),
+      }, credentials).catch(() => undefined);
+    }
+
+    return booking;
   }
 
   async getDayBookings(tenantId: string, date: string) {
@@ -140,14 +158,57 @@ export class BookingsService {
   }
 
   async updateStatus(id: string, tenantId: string, status: BookingStatus) {
-    const booking = await this.prisma.booking.findFirst({ where: { id, tenantId } });
-    if (!booking) throw new NotFoundException('Turno no encontrado');
+    const existing = await this.prisma.booking.findFirst({
+      where: { id, tenantId },
+      include: {
+        client: true,
+        service: true,
+        tenant: { select: { name: true, whatsappPhoneId: true, whatsappToken: true } },
+      },
+    });
+    if (!existing) throw new NotFoundException('Turno no encontrado');
 
     const data: any = { status };
     if (status === BookingStatus.CONFIRMED) data.confirmedAt = new Date();
     if (status === BookingStatus.CANCELLED) data.cancelledAt = new Date();
 
-    return this.prisma.booking.update({ where: { id }, data });
+    const updated = await this.prisma.booking.update({ where: { id }, data });
+
+    const credentials = this.tenantCredentials(existing.tenant);
+    if (existing.client.phone && credentials) {
+      const params = {
+        clientPhone: existing.client.phone,
+        clientName: existing.client.firstName,
+        businessName: existing.tenant.name,
+        serviceName: existing.service.name,
+        date: this.fmtDate(existing.startTime),
+        time: this.fmtTime(existing.startTime),
+      };
+      if (status === BookingStatus.CONFIRMED) {
+        this.whatsapp.sendBookingConfirmed(params, credentials).catch(() => undefined);
+      } else if (status === BookingStatus.CANCELLED) {
+        this.whatsapp.sendBookingCancelled(params, credentials).catch(() => undefined);
+      }
+    }
+
+    return updated;
+  }
+
+  private tenantCredentials(tenant: { whatsappPhoneId?: string | null; whatsappToken?: string | null }) {
+    if (tenant.whatsappPhoneId && tenant.whatsappToken) {
+      return { phoneId: tenant.whatsappPhoneId, token: tenant.whatsappToken };
+    }
+    return undefined;
+  }
+
+  private fmtDate(date: Date): string {
+    const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const DAYS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    return `${DAYS[date.getUTCDay()]} ${date.getUTCDate()} de ${MONTHS[date.getUTCMonth()]}`;
+  }
+
+  private fmtTime(date: Date): string {
+    return `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
   }
 
   private generateSlots(

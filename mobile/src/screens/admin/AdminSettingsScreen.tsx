@@ -21,6 +21,8 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [whatsappPhoneId, setWhatsappPhoneId] = useState('');
+  const [whatsappToken, setWhatsappToken] = useState('');
   const [logoUri, setLogoUri] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -33,6 +35,8 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
       setInstagram(data.instagram ?? '');
       setFacebook(data.facebook ?? '');
       setWhatsappNumber(data.whatsappNumber ?? '');
+      setWhatsappPhoneId(data.whatsappPhoneId ?? '');
+      setWhatsappToken(data.whatsappToken ?? '');
       setLogoUri(data.logoUrl ?? null);
     } catch {
       Alert.alert('Error', 'No se pudieron cargar los datos');
@@ -78,6 +82,8 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
         instagram: instagram.trim() || undefined,
         facebook: facebook.trim() || undefined,
         whatsappNumber: whatsappNumber.trim() || undefined,
+        whatsappPhoneId: whatsappPhoneId.trim() || undefined,
+        whatsappToken: whatsappToken.trim() || undefined,
         logoUrl: logoUri ?? undefined,
       });
       Alert.alert('Guardado', 'Configuración actualizada');
@@ -188,22 +194,39 @@ export function AdminSettingsScreen({ navigation, route }: Props) {
         </View>
 
         {/* WhatsApp */}
-        <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>MENSAJES AUTOMÁTICOS</Text>
+        <Text style={[styles.sectionLabel, { marginTop: spacing.xl }]}>MENSAJES AUTOMÁTICOS (WHATSAPP)</Text>
         <View style={styles.card}>
           <View style={styles.whatsappInfo}>
             <Text style={styles.whatsappInfoIcon}>💬</Text>
             <Text style={styles.whatsappInfoText}>
-              Nexo Turnos enviará mensajes automáticos por WhatsApp a tus clientes: confirmación al reservar, recordatorio 48 hs antes, recordatorio 2 hs antes y notificación si se cancela el turno.
+              Nexo Turnos envía mensajes automáticos a tus clientes al confirmar o cancelar un turno. Necesitás una cuenta de WhatsApp Business API en Meta for Developers.
             </Text>
           </View>
           <View style={styles.inputWrap}>
-            <Text style={styles.inputLabel}>Número de WhatsApp del negocio</Text>
+            <Text style={styles.inputLabel}>Número de WhatsApp (visible para clientes)</Text>
             <TextInput
               style={styles.input} value={whatsappNumber} onChangeText={setWhatsappNumber}
               placeholder="+5492215001234" placeholderTextColor="#d1d5db"
               keyboardType="phone-pad"
             />
-            <Text style={styles.inputHint}>Con código de país y área, sin espacios ni guiones. Ej: +5492215001234</Text>
+            <Text style={styles.inputHint}>Con código de país y área, sin espacios. Ej: +5492215001234</Text>
+          </View>
+          <View style={styles.inputWrap}>
+            <Text style={styles.inputLabel}>Phone Number ID (Meta for Developers)</Text>
+            <TextInput
+              style={styles.input} value={whatsappPhoneId} onChangeText={setWhatsappPhoneId}
+              placeholder="123456789012345" placeholderTextColor="#d1d5db"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.inputWrap}>
+            <Text style={styles.inputLabel}>Access Token (Meta for Developers)</Text>
+            <TextInput
+              style={styles.input} value={whatsappToken} onChangeText={setWhatsappToken}
+              placeholder="EAAxxxxx..." placeholderTextColor="#d1d5db"
+              autoCapitalize="none"
+              secureTextEntry
+            />
           </View>
         </View>
 

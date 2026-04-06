@@ -54,6 +54,8 @@ export class TenantsService {
     instagram?: string;
     facebook?: string;
     whatsappNumber?: string;
+    whatsappPhoneId?: string;
+    whatsappToken?: string;
     logoUrl?: string;
   }) {
     const tenant = await this.prisma.tenant.findUnique({ where: { id } });
