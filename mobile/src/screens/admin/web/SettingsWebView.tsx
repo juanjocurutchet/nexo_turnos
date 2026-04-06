@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator,
 import * as ImagePicker from 'expo-image-picker';
 import { adminApi } from '../../../services/api';
 
-const W = StyleSheet.create;
-
 export function SettingsWebView({ tenantId }: { tenantId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -177,7 +175,7 @@ function Field({ label, value, onChange, placeholder, hint, autoCapitalize }: an
   );
 }
 
-const s = W({
+const s = StyleSheet.create({
   root: { flex: 1 },
   twoCol: { flexDirection: 'row', alignItems: 'flex-start' },
   col: { flex: 1, marginRight: 20 },

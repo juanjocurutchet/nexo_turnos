@@ -66,7 +66,6 @@ export class ProfessionalsService {
 
     const { serviceIds, ...data } = dto;
 
-    // Si vienen serviceIds, reemplazar las asignaciones
     if (serviceIds !== undefined) {
       await this.prisma.professionalService.deleteMany({ where: { professionalId: id } });
       if (serviceIds.length) {
@@ -90,7 +89,6 @@ export class ProfessionalsService {
     const prof = await this.prisma.professional.findFirst({ where: { id, tenantId } });
     if (!prof) throw new NotFoundException('Profesional no encontrado');
 
-    // Upsert cada día de la semana
     await Promise.all(
       dto.availability.map((day) =>
         this.prisma.professionalAvailability.upsert({

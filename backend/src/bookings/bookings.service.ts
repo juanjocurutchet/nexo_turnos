@@ -157,19 +157,28 @@ export class BookingsService {
     durationMin: number,
     existingBookings: any[],
   ) {
-    const slots: { time: string; available: boolean }[] = [];
     const [openH, openM] = openTime.split(':').map(Number);
     const [closeH, closeM] = closeTime.split(':').map(Number);
+    const openMinutes  = openH  * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+    const candidates = new Set<number>();
+    for (let t = openMinutes; t + durationMin <= closeMinutes; t += durationMin) {
+      candidates.add(t);
+    }
 
-    const current = new Date(`${date}T00:00:00.000Z`);
-    current.setUTCHours(openH, openM, 0, 0);
+    for (const b of existingBookings) {
+      const endMin = b.endTime.getUTCHours() * 60 + b.endTime.getUTCMinutes();
+      if (endMin >= openMinutes && endMin + durationMin <= closeMinutes) {
+        candidates.add(endMin);
+      }
+    }
 
-    const end = new Date(`${date}T00:00:00.000Z`);
-    end.setUTCHours(closeH, closeM, 0, 0);
+    const slots: { time: string; available: boolean }[] = [];
 
-    while (current < end) {
+    for (const startMin of Array.from(candidates).sort((a, b) => a - b)) {
+      const current = new Date(`${date}T00:00:00.000Z`);
+      current.setUTCHours(Math.floor(startMin / 60), startMin % 60, 0, 0);
       const slotEnd = new Date(current.getTime() + durationMin * 60000);
-      if (slotEnd > end) break;
 
       const hasConflict = existingBookings.some(
         (b) =>
@@ -181,8 +190,6 @@ export class BookingsService {
       const hh = String(current.getUTCHours()).padStart(2, '0');
       const mm = String(current.getUTCMinutes()).padStart(2, '0');
       slots.push({ time: `${hh}:${mm}`, available: !hasConflict });
-
-      current.setUTCMinutes(current.getUTCMinutes() + 30);
     }
 
     return slots;
