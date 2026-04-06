@@ -142,6 +142,27 @@ export function NotificationsWebView({ tenantId }: { tenantId: string }) {
             />
           </View>
 
+          {selected.trigger === 'REMINDER' && (
+            <>
+              <Text style={s.sectionLabel}>ENVIAR</Text>
+              <View style={s.card}>
+                <View style={s.offsetGrid}>
+                  {OFFSET_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[s.offsetBtn, selected.offsetMinutes === opt.value && s.offsetBtnActive]}
+                      onPress={() => updateSelected('offsetMinutes', opt.value)}
+                    >
+                      <Text style={[s.offsetBtnText, selected.offsetMinutes === opt.value && s.offsetBtnTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </>
+          )}
+
           <Text style={s.sectionLabel}>MENSAJE</Text>
           <View style={s.card}>
             <TextInput
@@ -247,6 +268,15 @@ const s = StyleSheet.create({
     outlineStyle: 'none',
   } as any,
   hint: { fontSize: 11, color: '#4b5563', marginTop: 10, marginBottom: 8 },
+  offsetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  offsetBtn: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8,
+    backgroundColor: '#2a2a35', borderWidth: 1, borderColor: '#3a3a45',
+  },
+  offsetBtnActive: { backgroundColor: 'rgba(124,58,237,0.2)', borderColor: '#7c3aed' },
+  offsetBtnText: { fontSize: 13, color: '#9ca3af', fontWeight: '500' },
+  offsetBtnTextActive: { color: '#c084fc', fontWeight: '700' },
+
   varRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   varChip: {
     backgroundColor: 'rgba(124,58,237,0.15)', borderRadius: 6,
