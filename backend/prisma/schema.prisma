@@ -35,13 +35,14 @@ model Tenant {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users         TenantUser[]
-  services      Service[]
-  professionals Professional[]
-  bookings      Booking[]
-  clients       Client[]
-  availability  WeeklyAvailability[]
-  holidays      Holiday[]
+  users              TenantUser[]
+  services           Service[]
+  professionals      Professional[]
+  bookings           Booking[]
+  clients            Client[]
+  availability       WeeklyAvailability[]
+  holidays           Holiday[]
+  notificationRules  NotificationRule[]
 
   @@map("tenants")
 }
@@ -318,4 +319,31 @@ model Holiday {
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("holidays")
+}
+
+// ─────────────────────────────────────────
+// REGLAS DE NOTIFICACIÓN (WhatsApp)
+// ─────────────────────────────────────────
+model NotificationRule {
+  id            String              @id @default(cuid())
+  tenantId      String
+  trigger       NotificationTrigger
+  isEnabled     Boolean             @default(true)
+  offsetMinutes Int?                // solo para REMINDER: -120 = 2h antes, -1440 = 24h antes
+  message       String              @db.Text
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([tenantId, trigger, offsetMinutes])
+  @@map("notification_rules")
+}
+
+enum NotificationTrigger {
+  BOOKING_CREATED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  REMINDER
 }

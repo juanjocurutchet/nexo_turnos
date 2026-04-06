@@ -11,10 +11,11 @@ import { ProfessionalsWebView } from './web/ProfessionalsWebView';
 import { ServicesWebView } from './web/ServicesWebView';
 import { ScheduleWebView } from './web/ScheduleWebView';
 import { SettingsWebView } from './web/SettingsWebView';
+import { NotificationsWebView } from './web/NotificationsWebView';
 
 type Props = { navigation: AppNavigation; route: AppRoute<'AdminWeb'> };
 
-type Section = 'dashboard' | 'agenda' | 'professionals' | 'services' | 'schedule' | 'settings';
+type Section = 'dashboard' | 'agenda' | 'professionals' | 'services' | 'schedule' | 'notifications' | 'settings';
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendiente', CONFIRMED: 'Confirmado',
@@ -70,6 +71,7 @@ const NAV_ITEMS: { key: Section; icon: string; label: string }[] = [
   { key: 'professionals', icon: '👥', label: 'Profesionales' },
   { key: 'services', icon: '✨', label: 'Servicios' },
   { key: 'schedule', icon: '🕐', label: 'Horarios' },
+  { key: 'notifications', icon: '💬', label: 'Notificaciones' },
   { key: 'settings', icon: '⚙️', label: 'Configuración' },
 ];
 
@@ -199,6 +201,7 @@ export function AdminWebScreen({ navigation, route }: Props) {
               {section === 'professionals' && 'Profesionales'}
               {section === 'services' && 'Servicios'}
               {section === 'schedule' && 'Horarios del local'}
+              {section === 'notifications' && 'Notificaciones'}
               {section === 'settings' && 'Configuración'}
             </Text>
             <Text style={styles.topbarSub}>{todayDisplay}</Text>
@@ -251,6 +254,7 @@ export function AdminWebScreen({ navigation, route }: Props) {
           {section === 'professionals' && <ProfessionalsWebView tenantId={tenantId} />}
           {section === 'services' && <ServicesWebView tenantId={tenantId} />}
           {section === 'schedule' && <ScheduleWebView tenantId={tenantId} />}
+          {section === 'notifications' && <NotificationsWebView tenantId={tenantId} />}
           {section === 'settings' && <SettingsWebView tenantId={tenantId} />}
         </ScrollView>
       </View>

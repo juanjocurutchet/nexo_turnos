@@ -4,15 +4,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { WhatsappService } from '../notifications/whatsapp.service';
+import { WhatsappService, MessageVars } from '../notifications/whatsapp.service';
+import { NotificationRulesService } from '../notifications/notification-rules.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, NotificationTrigger } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsapp: WhatsappService,
+    private readonly notificationRules: NotificationRulesService,
   ) {}
 
   async getAvailableSlots(
@@ -128,14 +130,19 @@ export class BookingsService {
 
     const credentials = this.tenantCredentials(booking.tenant);
     if (client.phone && credentials) {
-      this.whatsapp.sendBookingReceived({
-        clientPhone: client.phone,
+      const vars: MessageVars = {
         clientName: client.firstName,
         businessName: booking.tenant.name,
         serviceName: booking.service.name,
         date: this.fmtDate(startTime),
         time: this.fmtTime(startTime),
-      }, credentials).catch(() => undefined);
+      };
+      this.notificationRules
+        .getActiveRule(dto.tenantId, NotificationTrigger.BOOKING_CREATED)
+        .then((rule) => {
+          if (rule) return this.whatsapp.sendMessage(client.phone!, rule.message, vars, credentials);
+        })
+        .catch(() => undefined);
     }
 
     return booking;
@@ -176,18 +183,24 @@ export class BookingsService {
 
     const credentials = this.tenantCredentials(existing.tenant);
     if (existing.client.phone && credentials) {
-      const params = {
-        clientPhone: existing.client.phone,
+      const vars: MessageVars = {
         clientName: existing.client.firstName,
         businessName: existing.tenant.name,
         serviceName: existing.service.name,
         date: this.fmtDate(existing.startTime),
         time: this.fmtTime(existing.startTime),
       };
-      if (status === BookingStatus.CONFIRMED) {
-        this.whatsapp.sendBookingConfirmed(params, credentials).catch(() => undefined);
-      } else if (status === BookingStatus.CANCELLED) {
-        this.whatsapp.sendBookingCancelled(params, credentials).catch(() => undefined);
+      let trigger: NotificationTrigger | null = null;
+      if (status === BookingStatus.CONFIRMED) trigger = NotificationTrigger.BOOKING_CONFIRMED;
+      else if (status === BookingStatus.CANCELLED) trigger = NotificationTrigger.BOOKING_CANCELLED;
+
+      if (trigger) {
+        this.notificationRules
+          .getActiveRule(tenantId, trigger)
+          .then((rule) => {
+            if (rule) return this.whatsapp.sendMessage(existing.client.phone!, rule.message, vars, credentials);
+          })
+          .catch(() => undefined);
       }
     }
 

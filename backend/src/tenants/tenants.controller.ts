@@ -1,10 +1,14 @@
 import { Controller, Post, Get, Patch, Delete, Param, Body } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
+import { NotificationRulesService } from '../notifications/notification-rules.service';
 
 @Controller('tenants')
 export class TenantsController {
-  constructor(private readonly tenantsService: TenantsService) {}
+  constructor(
+    private readonly tenantsService: TenantsService,
+    private readonly notificationRulesService: NotificationRulesService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateTenantDto) {
@@ -49,5 +53,15 @@ export class TenantsController {
   @Delete(':id/holidays/:holidayId')
   removeHoliday(@Param('id') id: string, @Param('holidayId') holidayId: string) {
     return this.tenantsService.removeHoliday(id, holidayId);
+  }
+
+  @Get(':id/notification-rules')
+  getNotificationRules(@Param('id') id: string) {
+    return this.notificationRulesService.getRules(id);
+  }
+
+  @Patch(':id/notification-rules')
+  updateNotificationRules(@Param('id') id: string, @Body() body: { rules: any[] }) {
+    return this.notificationRulesService.updateRules(id, body.rules);
   }
 }

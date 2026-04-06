@@ -6,6 +6,14 @@ export interface WhatsappCredentials {
   phoneId: string;
 }
 
+export interface MessageVars {
+  clientName: string;
+  businessName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+}
+
 @Injectable()
 export class WhatsappService {
   private readonly logger = new Logger(WhatsappService.name);
@@ -17,76 +25,22 @@ export class WhatsappService {
     this.globalPhoneId = config.get<string>('WHATSAPP_PHONE_ID');
   }
 
-  async sendBookingReceived(
-    params: NotificationParams,
-    credentials?: WhatsappCredentials,
-  ) {
-    return this.sendTemplate(params.clientPhone, 'nexo_booking_received', [
-      params.clientName,
-      params.businessName,
-      params.serviceName,
-      params.date,
-      params.time,
-    ], credentials);
-  }
-
-  async sendBookingConfirmed(
-    params: NotificationParams,
-    credentials?: WhatsappCredentials,
-  ) {
-    return this.sendTemplate(params.clientPhone, 'nexo_booking_confirmed', [
-      params.clientName,
-      params.businessName,
-      params.serviceName,
-      params.date,
-      params.time,
-    ], credentials);
-  }
-
-  async sendBookingCancelled(
-    params: NotificationParams,
-    credentials?: WhatsappCredentials,
-  ) {
-    return this.sendTemplate(params.clientPhone, 'nexo_booking_cancelled', [
-      params.clientName,
-      params.businessName,
-      params.serviceName,
-      params.date,
-      params.time,
-    ], credentials);
-  }
-
-  private async sendTemplate(
+  async sendMessage(
     to: string,
-    templateName: string,
-    bodyParams: string[],
+    messageTemplate: string,
+    vars: MessageVars,
     credentials?: WhatsappCredentials,
   ) {
     const token = credentials?.token ?? this.globalToken;
     const phoneId = credentials?.phoneId ?? this.globalPhoneId;
 
     if (!token || !phoneId) {
-      this.logger.warn(`WhatsApp no configurado — omitiendo "${templateName}" a ${to}`);
+      this.logger.warn(`WhatsApp no configurado — omitiendo mensaje a ${to}`);
       return;
     }
 
+    const text = this.interpolate(messageTemplate, vars);
     const phone = to.replace(/[^\d]/g, '');
-
-    const body = {
-      messaging_product: 'whatsapp',
-      to: phone,
-      type: 'template',
-      template: {
-        name: templateName,
-        language: { code: 'es_AR' },
-        components: [
-          {
-            type: 'body',
-            parameters: bodyParams.map((text) => ({ type: 'text', text })),
-          },
-        ],
-      },
-    };
 
     try {
       const res = await fetch(
@@ -97,7 +51,12 @@ export class WhatsappService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: phone,
+            type: 'text',
+            text: { body: text },
+          }),
         },
       );
 
@@ -109,13 +68,13 @@ export class WhatsappService {
       this.logger.error(`WhatsApp fetch error: ${err}`);
     }
   }
-}
 
-interface NotificationParams {
-  clientPhone: string;
-  clientName: string;
-  businessName: string;
-  serviceName: string;
-  date: string;
-  time: string;
+  private interpolate(template: string, vars: MessageVars): string {
+    return template
+      .replace(/\{\{clientName\}\}/g, vars.clientName)
+      .replace(/\{\{businessName\}\}/g, vars.businessName)
+      .replace(/\{\{serviceName\}\}/g, vars.serviceName)
+      .replace(/\{\{date\}\}/g, vars.date)
+      .replace(/\{\{time\}\}/g, vars.time);
+  }
 }

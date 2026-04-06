@@ -101,4 +101,10 @@ export const adminApi = {
 
   removeHoliday: (tenantId: string, holidayId: string) =>
     api.delete(`/tenants/${tenantId}/holidays/${holidayId}`).then((r) => r.data),
+
+  getNotificationRules: (tenantId: string) =>
+    api.get(`/tenants/${tenantId}/notification-rules`).then((r) => r.data),
+
+  updateNotificationRules: (tenantId: string, rules: any[]) =>
+    api.patch(`/tenants/${tenantId}/notification-rules`, { rules }).then((r) => r.data),
 };
